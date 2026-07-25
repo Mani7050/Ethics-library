@@ -54,10 +54,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="-ml-1" />
             </div>
 
-            {/* Mobile View: Brand Identity Header, Sidebar Toggle, Notifications & User Logout */}
+            {/* Mobile View: Brand Identity Header, Notifications & User Logout */}
             <div className="flex md:hidden items-center justify-between w-full">
               <div className="flex items-center gap-2 select-none">
-                <SidebarTrigger className="-ml-1" />
                 <div className="flex aspect-square size-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
