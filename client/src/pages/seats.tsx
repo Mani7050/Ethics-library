@@ -45,7 +45,6 @@ export default function SeatsPage() {
   const [generalChosenSeatId, setGeneralChosenSeatId] = React.useState<number | "">("")
 
   // Dynamic seat additions
-  const DEFAULT_CATEGORIES = ["General Desk", "Premium Desk", "VIP Cabin"]
   const [newSeatCategory, setNewSeatCategory] = React.useState<string>("")
   const [customSeatNumberInput, setCustomSeatNumberInput] = React.useState<string>("")
   
@@ -70,7 +69,7 @@ export default function SeatsPage() {
       }
     } catch {}
     const seatCats = seats.map((s) => s.category)
-    return sanitizeCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...seatCats])))
+    return sanitizeCategories(Array.from(new Set(seatCats.length > 0 ? seatCats : ["General Desk"])))
   })
 
   const [isAddingCustomCategory, setIsAddingCustomCategory] = React.useState(false)
