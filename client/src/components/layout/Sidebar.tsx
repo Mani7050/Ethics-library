@@ -40,10 +40,10 @@ export const Sidebar: React.FC = () => {
         {/* Brand Header */}
         <div className="flex h-14 items-center px-5 border-b border-border gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-black text-lg shadow-sm">
-            M
+            E
           </div>
           <div>
-            <h2 className="text-base font-black tracking-tight text-foreground leading-none">MITRA</h2>
+            <h2 className="text-base font-black tracking-tight text-foreground leading-none">ETHICS</h2>
             <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400">Student & Member App</p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MemberProvider } from './context/MemberContext';
 import { SplashScreen } from './components/onboarding/SplashScreen';
 import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
@@ -14,39 +14,54 @@ import { Profile } from './pages/Profile';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 
-// Helper component for Onboarding Route
-const OnboardingPage: React.FC = () => {
-  const navigate = useNavigate();
-  return (
-    <OnboardingScreen
-      onComplete={() => {
-        sessionStorage.setItem('mitra_onboarding_completed', 'true');
-        navigate('/login');
-      }}
-    />
-  );
-};
-
 export const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
 
   const handleSplashFinish = () => {
     setShowSplash(false);
+    const onboardingDone = sessionStorage.getItem('ethics_onboarding_completed');
+    if (!onboardingDone) {
+      setShowOnboarding(true);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    sessionStorage.setItem('ethics_onboarding_completed', 'true');
+    setShowOnboarding(false);
   };
 
   const handleReplayIntro = () => {
-    sessionStorage.removeItem('mitra_onboarding_completed');
+    sessionStorage.removeItem('ethics_onboarding_completed');
     setShowSplash(true);
+    setShowOnboarding(false);
   };
 
   return (
     <MemberProvider onReplayIntro={handleReplayIntro}>
+      {/* Step 1: Splash Screen */}
       {showSplash && <SplashScreen onFinish={handleSplashFinish} />}
 
-      {!showSplash && (
+      {/* Step 2: Onboarding Screen (Appears immediately after Splash) */}
+      {!showSplash && showOnboarding && (
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      )}
+
+      {/* Step 3: Main App Router (Login / Portal) */}
+      {!showSplash && !showOnboarding && (
         <BrowserRouter>
           <Routes>
-            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route
+              path="/onboarding"
+              element={
+                <OnboardingScreen
+                  onComplete={() => {
+                    sessionStorage.setItem('ethics_onboarding_completed', 'true');
+                    window.location.href = '/login';
+                  }}
+                />
+              }
+            />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/" element={<AppLayout />}>
@@ -58,7 +73,7 @@ export const App: React.FC = () => {
               <Route path="support" element={<Support />} />
               <Route path="profile" element={<Profile />} />
             </Route>
-            <Route path="*" element={<Navigate to="/onboarding" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       )}

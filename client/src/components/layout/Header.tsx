@@ -5,7 +5,7 @@ import { DigitalIdModal } from '../modals/DigitalIdModal';
 import { NoticesDrawer } from '../modals/NoticesDrawer';
 
 export const Header: React.FC = () => {
-  const { user, isDarkMode, toggleDarkMode, isCheckedIn, checkInTime, toggleCheckIn } = useMember();
+  const { user, isDarkMode, toggleDarkMode } = useMember();
   const [showIdModal, setShowIdModal] = useState<boolean>(false);
   const [showNotices, setShowNotices] = useState<boolean>(false);
 
@@ -16,10 +16,10 @@ export const Header: React.FC = () => {
           {/* Mobile Brand */}
           <div className="flex items-center gap-2 md:hidden">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-black text-xs shadow-2xs">
-              M
+              E
             </div>
             <div>
-              <h1 className="text-xs font-black tracking-tight text-foreground leading-none">MITRA</h1>
+              <h1 className="text-xs font-black tracking-tight text-foreground leading-none">ETHICS</h1>
               <span className="text-[9px] font-semibold text-amber-600 dark:text-amber-400 leading-none">Member Portal</span>
             </div>
           </div>
@@ -40,26 +40,6 @@ export const Header: React.FC = () => {
 
         {/* Quick Actions */}
         <div className="flex items-center gap-1.5 md:gap-2.5">
-          {/* Attendance Toggle */}
-          <button
-            onClick={toggleCheckIn}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold transition-all ${
-              isCheckedIn
-                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                : 'bg-amber-500 text-slate-950 hover:bg-amber-400'
-            }`}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isCheckedIn ? 'bg-emerald-400' : 'bg-amber-600'}`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${isCheckedIn ? 'bg-emerald-500' : 'bg-amber-950'}`}></span>
-            </span>
-            {isCheckedIn ? (
-              <span>Checked In ({checkInTime || '08:30 AM'})</span>
-            ) : (
-              <span>Check-In</span>
-            )}
-          </button>
-
           {/* Theme Switcher */}
           <button
             onClick={toggleDarkMode}

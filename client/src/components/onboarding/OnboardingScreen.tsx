@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import slide1 from '../../assets/slide1.png';
+import slide2 from '../../assets/slide2.png';
+import slide3 from '../../assets/slide3.png';
 
 interface OnboardingScreenProps {
   onComplete: () => void;
@@ -8,22 +11,22 @@ interface OnboardingScreenProps {
 const slides = [
   {
     id: 1,
-    title: 'Find Your Perfect Workspace',
-    description: 'Browse high-end quiet study cabins, executive work desks, and AC focus environments tailored for serious aspirants.',
-    bgImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200&auto=format&fit=crop'
+    title: 'Reserved Study Cabins & Desk Map',
+    description: 'Reserve quiet study bays, ergonomically designed desks, and dedicated AC silent reading cabins tailored for competitive exams.',
+    bgImage: slide1,
   },
   {
     id: 2,
-    title: 'Smart Seat & Live Attendance',
-    description: 'Check-in with a single tap, view real-time floor seat maps, and track your daily study consistency effortlessly.',
-    bgImage: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=1200&auto=format&fit=crop'
+    title: 'Digital Gate Pass & Smart Attendance',
+    description: 'Tap your digital RFID QR pass for instant library gate entry, track daily attendance hours, and maintain your streak.',
+    bgImage: slide2,
   },
   {
     id: 3,
-    title: 'Deep Work & Pomodoro Suite',
-    description: 'Elevate your focus with built-in Pomodoro sprint timers and instant 24/7 student support desk assistance.',
-    bgImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop'
-  }
+    title: 'Focus Audio & 24/7 Library Desk',
+    description: 'Study with ambient rain audio, Pomodoro focus sprint timers, and instant support from Ethics Library administration.',
+    bgImage: slide3,
+  },
 ];
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
@@ -57,10 +60,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         <div className="relative z-20 flex items-center justify-between p-5 pt-8">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-black text-xs shadow-md">
-              M
+              E
             </div>
             <span className="text-xs font-black tracking-wider uppercase text-white shadow-sm">
-              MITRA
+              ETHICS
             </span>
           </div>
 
@@ -99,7 +102,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           {/* Skip Intro Link */}
           <button
             onClick={onComplete}
-            className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+            className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             Skip Intro
           </button>
