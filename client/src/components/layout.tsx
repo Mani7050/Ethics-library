@@ -1,13 +1,39 @@
+import * as React from "react"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { useLibrary } from "@/context/LibraryContext"
-import { X, LayoutDashboard, Users, Grid, CreditCard, Fingerprint, Bell } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { X, LayoutDashboard, Users, Grid, CreditCard, Fingerprint, Bell, User, LogOut } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { toasts, removeToast } = useLibrary()
   const location = useLocation()
+  const [currentUser, setCurrentUser] = React.useState<{ name: string; email: string } | null>(null)
+
+  React.useEffect(() => {
+    const userStr = localStorage.getItem("currentUser")
+    if (userStr) {
+      try {
+        setCurrentUser(JSON.parse(userStr))
+      } catch (e) {}
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn")
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("currentUser")
+    window.location.href = "/login"
+  }
 
   const navItems = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -28,23 +54,47 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <SidebarTrigger className="-ml-1" />
             </div>
 
-            {/* Mobile View: Brand Identity Header & Notifications */}
+            {/* Mobile View: Brand Identity Header, Sidebar Toggle, Notifications & User Logout */}
             <div className="flex md:hidden items-center justify-between w-full">
               <div className="flex items-center gap-2 select-none">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
+                <SidebarTrigger className="-ml-1" />
+                <div className="flex aspect-square size-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="size-4">
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                     <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
                   </svg>
                 </div>
-                <span className="text-sm font-semibold tracking-tight text-foreground">Ethics Library</span>
+                <span className="text-xs font-semibold tracking-tight text-foreground">Ethics Library</span>
               </div>
 
-              {/* Notification bell button */}
-              <button className="relative p-1.5 text-muted-foreground hover:text-foreground cursor-pointer rounded-full hover:bg-muted transition-colors border-0 bg-transparent">
-                <Bell className="size-4.5" />
-                <span className="absolute top-1.5 right-1.5 size-1.5 bg-primary rounded-full ring-1 ring-background animate-pulse" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {/* Notification bell button */}
+                <button className="relative p-1.5 text-muted-foreground hover:text-foreground cursor-pointer rounded-full hover:bg-muted transition-colors border-0 bg-transparent">
+                  <Bell className="size-4" />
+                  <span className="absolute top-1.5 right-1.5 size-1.5 bg-primary rounded-full ring-1 ring-background animate-pulse" />
+                </button>
+
+                {/* Mobile User Profile & Logout Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground hover:text-foreground cursor-pointer border border-border">
+                      <User className="size-3.5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 rounded-none">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-xs font-bold leading-none">{currentUser?.name || "Mani (Owner)"}</p>
+                        <p className="text-[10px] leading-none text-muted-foreground">{currentUser?.email || "mani@gmail.com"}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-xs font-bold cursor-pointer text-red-600 focus:text-red-600" onClick={handleLogout}>
+                      <LogOut className="size-3.5 mr-2" /> Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </header>
           <div className="flex-1 overflow-y-auto p-4 md:p-8 min-w-0 pb-20 md:pb-8">
