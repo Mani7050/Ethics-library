@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMember } from '../context/MemberContext';
 import { LifeBuoy, Plus, CheckCircle } from 'lucide-react';
+import { SupportTicket } from '../types';
 
 export const Support: React.FC = () => {
   const { tickets, addTicket } = useMember();
@@ -12,7 +13,7 @@ export const Support: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!subject || !description) return;
-    addTicket(subject, category, description);
+    addTicket({ subject, category, message: description });
     setSubject('');
     setDescription('');
     setShowNewModal(false);
@@ -45,7 +46,7 @@ export const Support: React.FC = () => {
         <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">Your Submitted Support Tickets</h2>
 
         <div className="space-y-2">
-          {tickets.map((t) => (
+          {tickets.map((t: SupportTicket) => (
             <div key={t.id} className="p-3 rounded-lg bg-accent/20 border border-border space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

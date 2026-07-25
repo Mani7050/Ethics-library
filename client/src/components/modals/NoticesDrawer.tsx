@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMember } from '../../context/MemberContext';
 import { Bell, X, AlertCircle } from 'lucide-react';
+import { Announcement } from '../../types';
 
 interface NoticesDrawerProps {
   isOpen: boolean;
@@ -31,7 +32,7 @@ export const NoticesDrawer: React.FC<NoticesDrawerProps> = ({ isOpen, onClose })
           </div>
 
           <div className="space-y-2.5">
-            {announcements.map((ann) => (
+            {announcements.map((ann: Announcement) => (
               <div
                 key={ann.id}
                 className="p-3 rounded-lg bg-accent/20 border border-border space-y-1.5 hover:border-amber-500/40 transition-all"

@@ -4,24 +4,29 @@ export interface MemberProfile {
   email: string;
   phone: string;
   avatar: string;
-  memberSince: string;
+  memberSince?: string;
   membershipId: string;
   currentSeat: string;
   floor: string;
-  zone: string;
-  lockerNumber: string;
+  zone?: string;
+  lockerNumber?: string;
   shift: string;
   planName: string;
-  planExpiryDate: string;
-  planDaysLeft: number;
-  status: 'active' | 'expiring_soon' | 'expired';
+  validTill?: string;
+  planExpiryDate?: string;
+  daysRemaining?: number;
+  planDaysLeft?: number;
+  joinedDate?: string;
+  status?: 'active' | 'expiring_soon' | 'expired';
 }
+
+export type UserProfile = MemberProfile;
 
 export interface AttendanceRecord {
   id: string;
   date: string;
   checkIn: string;
-  checkOut?: string;
+  checkOut?: string | null;
   durationHours: number;
   seatNumber: string;
   status: 'completed' | 'in_progress' | 'absent';

@@ -125,3 +125,4 @@ class SoundEngine {
 }
 
 export const soundEngine = new SoundEngine();
+export const playSound = (type: string) => soundEngine.playChime();

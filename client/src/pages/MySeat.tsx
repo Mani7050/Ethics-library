@@ -4,14 +4,23 @@ import { Armchair, Zap, Sun, ShieldCheck, Info, ArrowLeftRight, Search, Wind } f
 import { SeatInfo } from '../types';
 
 export const MySeat: React.FC = () => {
-  const { user, seats, changeSeat } = useMember();
+  const { user, updateUserSeat } = useMember();
   const [selectedFloor, setSelectedFloor] = useState<'Ground Floor' | '1st Floor'>('Ground Floor');
   const [statusFilter, setStatusFilter] = useState<'all' | 'available' | 'occupied' | 'my_seat'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedSeat, setSelectedSeat] = useState<SeatInfo | null>(null);
   const [showConfirmSwapModal, setShowConfirmSwapModal] = useState<boolean>(false);
 
-  const filteredSeats = seats.filter(s => {
+  const mockSeats: SeatInfo[] = [
+    { id: '1', code: 'A-12', floor: '1st Floor', zone: 'AC Zone', status: 'my_seat', hasPowerOutlet: true, hasLight: true, hasErgoChair: true },
+    { id: '2', code: 'A-10', floor: '1st Floor', zone: 'AC Zone', status: 'available', hasPowerOutlet: true, hasLight: true, hasErgoChair: true },
+    { id: '3', code: 'A-11', floor: '1st Floor', zone: 'Window Side', status: 'occupied', hasPowerOutlet: true, hasLight: true, hasErgoChair: false },
+    { id: '4', code: 'A-14', floor: '1st Floor', zone: 'Silent Corner', status: 'available', hasPowerOutlet: true, hasLight: true, hasErgoChair: true },
+    { id: '5', code: 'G-01', floor: 'Ground Floor', zone: 'Standard', status: 'available', hasPowerOutlet: true, hasLight: true, hasErgoChair: false },
+    { id: '6', code: 'G-05', floor: 'Ground Floor', zone: 'Window Side', status: 'occupied', hasPowerOutlet: true, hasLight: true, hasErgoChair: true },
+  ];
+
+  const filteredSeats = mockSeats.filter((s: SeatInfo) => {
     const matchesFloor = s.floor === selectedFloor;
     const matchesSearch = s.code.toLowerCase().includes(searchQuery.toLowerCase()) || s.zone.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
@@ -35,7 +44,7 @@ export const MySeat: React.FC = () => {
 
   const handleConfirmSwap = () => {
     if (selectedSeat && selectedSeat.status === 'available') {
-      changeSeat(selectedSeat.id);
+      updateUserSeat(selectedSeat.code, selectedSeat.floor);
       setShowConfirmSwapModal(false);
       setSelectedSeat(null);
     }
@@ -83,7 +92,6 @@ export const MySeat: React.FC = () => {
       {/* Current Assigned Seat Banner */}
       <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-card p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">
-          {/* Seat Code Box with whitespace-nowrap so A-12 never wraps */}
           <div className="flex px-3.5 py-2 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-black font-mono text-lg sm:text-xl shadow whitespace-nowrap shrink-0">
             {user.currentSeat}
           </div>
@@ -95,7 +103,7 @@ export const MySeat: React.FC = () => {
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground font-medium leading-tight">
-              {user.floor} &bull; {user.zone} &bull; Personal 240V Outlet & Lamp
+              {user.floor} &bull; Personal 240V Outlet & Lamp
             </p>
           </div>
         </div>
@@ -126,7 +134,7 @@ export const MySeat: React.FC = () => {
               statusFilter === 'all' ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            All ({seats.filter(s => s.floor === selectedFloor).length})
+            All ({mockSeats.filter((s: SeatInfo) => s.floor === selectedFloor).length})
           </button>
           <button
             onClick={() => setStatusFilter('available')}
@@ -134,7 +142,7 @@ export const MySeat: React.FC = () => {
               statusFilter === 'available' ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Available ({seats.filter(s => s.floor === selectedFloor && s.status === 'available').length})
+            Available ({mockSeats.filter((s: SeatInfo) => s.floor === selectedFloor && s.status === 'available').length})
           </button>
           <button
             onClick={() => setStatusFilter('occupied')}
@@ -142,7 +150,7 @@ export const MySeat: React.FC = () => {
               statusFilter === 'occupied' ? 'bg-slate-500/15 text-slate-500 border border-slate-500/30' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            Occupied ({seats.filter(s => s.floor === selectedFloor && s.status === 'occupied').length})
+            Occupied ({mockSeats.filter((s: SeatInfo) => s.floor === selectedFloor && s.status === 'occupied').length})
           </button>
           <button
             onClick={() => setStatusFilter('my_seat')}
@@ -202,7 +210,7 @@ export const MySeat: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-5 sm:grid-cols-5 gap-2 max-w-lg mx-auto w-full">
-                {filteredSeats.map((seat) => {
+                {filteredSeats.map((seat: SeatInfo) => {
                   const isMySeat = seat.code === user.currentSeat;
                   const isSelected = selectedSeat?.id === seat.id;
 

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DigitalIdModal } from '../components/modals/DigitalIdModal';
+import { Announcement } from '../types';
 
 export const Dashboard: React.FC = () => {
   const { user, isCheckedIn, checkInTime, toggleCheckIn, announcements, todayHours, attendanceLog } = useMember();
@@ -76,7 +77,6 @@ export const Dashboard: React.FC = () => {
             <div className="space-y-0.5 text-xs">
               <div className="text-[10px] font-bold text-slate-900/80 uppercase">Desk Code</div>
               <div className="font-bold text-slate-950">{user.floor}</div>
-              <div className="text-[10px] text-slate-900/70">{user.zone}</div>
             </div>
           </div>
         </div>
@@ -164,8 +164,8 @@ export const Dashboard: React.FC = () => {
             <span className="text-[11px] font-bold">Plan Validity</span>
             <Calendar className="h-3.5 w-3.5 text-emerald-500" />
           </div>
-          <div className="text-xl font-extrabold text-foreground">{user.planDaysLeft} <span className="text-xs font-normal text-muted-foreground">days</span></div>
-          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold truncate">Exp: {user.planExpiryDate}</div>
+          <div className="text-xl font-extrabold text-foreground">{user.daysRemaining || 158} <span className="text-xs font-normal text-muted-foreground">days</span></div>
+          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold truncate">Exp: {user.validTill}</div>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-3 space-y-1 shadow-2xs">
@@ -173,7 +173,7 @@ export const Dashboard: React.FC = () => {
             <span className="text-[11px] font-bold">Locker</span>
             <Lock className="h-3.5 w-3.5 text-purple-500" />
           </div>
-          <div className="text-xl font-extrabold text-foreground">{user.lockerNumber}</div>
+          <div className="text-xl font-extrabold text-foreground">#42</div>
           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Key Active</div>
         </div>
       </div>
@@ -259,7 +259,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              {announcements.map((ann) => (
+              {announcements.map((ann: Announcement) => (
                 <div key={ann.id} className="p-2.5 rounded-lg bg-accent/20 border border-border space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-foreground truncate max-w-[160px]">{ann.title}</span>
