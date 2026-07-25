@@ -221,9 +221,89 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {/* Attendance List Table */}
-      <div className="overflow-x-auto border-t border-b border-border">
-        <table className="w-full text-xs text-left border-collapse min-w-[900px]">
+      {/* Mobile View: High-Density Attendance Cards */}
+      <div className="space-y-3 sm:hidden">
+        {filteredLogs.map((log) => (
+          <Card key={log.id} className="rounded-none border border-border p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${log.color}`}>
+                  {log.initial}
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-foreground">{log.name}</h4>
+                  <p className="text-[11px] font-semibold text-primary">{log.seat}</p>
+                </div>
+              </div>
+              
+              {/* Status Badge */}
+              {log.status === "Inside" ? (
+                <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Inside
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-300 px-2 py-0.5 text-[10px] font-bold">
+                  <span className="size-1.5 rounded-full bg-zinc-400" />
+                  Logged Out
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 text-[11px] pt-2 border-t border-border/50 text-muted-foreground font-medium">
+              <div>
+                <span className="block text-[9px] uppercase font-bold text-zinc-400">Date</span>
+                <span className="font-semibold text-foreground">{log.date}</span>
+              </div>
+              <div>
+                <span className="block text-[9px] uppercase font-bold text-zinc-400">In / Out</span>
+                <span className="text-emerald-600 font-bold">{log.checkIn}</span>
+                {log.checkOut && log.checkOut !== "--" && (
+                  <span className="text-amber-600 font-bold ml-1">/ {log.checkOut}</span>
+                )}
+              </div>
+              <div>
+                <span className="block text-[9px] uppercase font-bold text-zinc-400">Active</span>
+                <span className="font-bold text-foreground">{log.hours}</span>
+              </div>
+            </div>
+
+            {log.status === "Inside" && (
+              <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={log.status === "Inside"} 
+                      onChange={() => checkOutMember(log.id)}
+                      className="sr-only peer" 
+                    />
+                    <div className="w-8 h-4.5 bg-zinc-200 dark:bg-zinc-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2.5px] after:left-[2.5px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                  <span className="text-[11px] font-bold text-emerald-600">Active Session</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => checkOutMember(log.id)}
+                  className="rounded-none h-7 px-2.5 text-[10px] font-bold cursor-pointer hover:bg-amber-50 hover:text-amber-600"
+                >
+                  <LogOut className="size-3 mr-1" /> Log Out
+                </Button>
+              </div>
+            )}
+          </Card>
+        ))}
+        {filteredLogs.length === 0 && (
+          <div className="p-8 text-center text-muted-foreground font-semibold border border-dashed rounded-none">
+            No attendance logs found.
+          </div>
+        )}
+      </div>
+
+      {/* Desktop View: Full Attendance Table */}
+      <div className="hidden sm:block overflow-x-auto border-t border-b border-border shadow-sm">
+        <table className="w-full text-xs text-left border-collapse min-w-[750px]">
           <thead>
             <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
               <th className="p-4">Member Name</th>

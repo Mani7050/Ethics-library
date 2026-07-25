@@ -137,7 +137,12 @@ window.fetch = async function (input, init) {
     }
     init.headers = headers;
   }
-  return originalFetch(input, init);
+  const res = await originalFetch(input, init);
+  if ((res.status === 401 || res.status === 403) && token) {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("isLoggedIn");
+  }
+  return res;
 };
 
 export function LibraryProvider({ children }: { children: React.ReactNode }) {
