@@ -55,8 +55,8 @@
     --card-foreground: oklch(0.153 0.006 107.1);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.153 0.006 107.1);
-    --primary: oklch(0.555 0.163 48.998);
-    --primary-foreground: oklch(0.987 0.022 95.277);
+    --primary: oklch(0.847 0.187 88.62);
+    --primary-foreground: oklch(0.153 0.006 107.1);
     --secondary: oklch(0.967 0.001 286.375);
     --secondary-foreground: oklch(0.21 0.006 285.885);
     --muted: oklch(0.966 0.005 106.5);
@@ -90,8 +90,8 @@
     --card-foreground: oklch(0.988 0.003 106.5);
     --popover: oklch(0.228 0.013 107.4);
     --popover-foreground: oklch(0.988 0.003 106.5);
-    --primary: oklch(0.473 0.137 46.201);
-    --primary-foreground: oklch(0.987 0.022 95.277);
+    --primary: oklch(0.847 0.187 88.62);
+    --primary-foreground: oklch(0.153 0.006 107.1);
     --secondary: oklch(0.274 0.006 286.033);
     --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.286 0.016 107.4);
@@ -127,4 +127,31 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Premium Minimal Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
