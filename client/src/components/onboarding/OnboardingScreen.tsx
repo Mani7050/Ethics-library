@@ -57,25 +57,25 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         </div>
 
         {/* Top Header Bar with Step Pill Indicator */}
-        <div className="relative z-20 flex items-center justify-between p-5 pt-8">
+        <div className="relative z-20 flex items-center justify-between p-4 pt-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-slate-950 font-black text-xs shadow-md">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-extrabold text-[11px] shadow-md">
               E
             </div>
-            <span className="text-xs font-black tracking-wider uppercase text-white shadow-sm">
+            <span className="text-[11px] font-extrabold tracking-wider uppercase text-white shadow-sm">
               ETHICS
             </span>
           </div>
 
           {/* Top Right Pill Pagination Indicator: [ ▬ • • ] */}
-          <div className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+          <div className="flex items-center gap-1.5 bg-slate-900/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 shadow-lg">
             {slides.map((_, idx) => (
               <span
                 key={idx}
                 className={`transition-all duration-300 rounded-full ${
                   idx === currentSlideIndex
-                    ? 'w-5 h-2 bg-amber-500 shadow-sm'
-                    : 'w-2 h-2 bg-white/40'
+                    ? 'w-4 h-1.5 bg-amber-500 shadow-sm'
+                    : 'w-1.5 h-1.5 bg-white/40'
                 }`}
               />
             ))}
@@ -86,23 +86,23 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         <div className="flex-1" />
       </div>
 
-      {/* Bottom Overlapping Curved White Card Sheet */}
-      <div className="-mt-10 rounded-t-[32px] bg-white dark:bg-slate-900 px-6 pt-7 pb-8 relative z-20 shadow-2xl flex flex-col justify-between space-y-6">
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+      {/* Bottom Overlapping Curved White Card Sheet with Compact Padding */}
+      <div className="-mt-8 rounded-t-[28px] bg-white dark:bg-slate-900 px-5 pt-5 pb-6 relative z-20 shadow-2xl flex flex-col justify-between space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-snug">
             {currentSlide.title}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
+          <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-md">
             {currentSlide.description}
           </p>
         </div>
 
-        {/* Bottom Action Row with Right-Aligned Solid Orange Button */}
-        <div className="flex items-center justify-between pt-2">
+        {/* Bottom Action Row with Compact Sleek Button */}
+        <div className="flex items-center justify-between pt-1">
           {/* Skip Intro Link */}
           <button
             onClick={onComplete}
-            className="text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
+            className="text-xs font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
           >
             Skip Intro
           </button>
@@ -110,10 +110,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           {/* Solid Amber/Orange NEXT Button */}
           <button
             onClick={handleNext}
-            className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-amber-500/30 flex items-center gap-2 active:scale-95 cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 active:scale-95 cursor-pointer"
           >
             <span>{isLastSlide ? 'GET STARTED' : 'NEXT'}</span>
-            <ArrowRight className="h-4 w-4 stroke-[3]" />
+            <ArrowRight className="h-3.5 w-3.5 stroke-[2.5]" />
           </button>
         </div>
       </div>
