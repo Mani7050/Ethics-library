@@ -12,6 +12,22 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Search, UserPlus, MoreVertical, LayoutGrid, List, Eye, Edit, Trash2, ChevronDown } from "lucide-react"
 
 export default function MembersPage() {
@@ -24,26 +40,16 @@ export default function MembersPage() {
   const [address, setAddress] = React.useState("")
   const [isSheetOpen, setIsSheetOpen] = React.useState(false)
 
-  // Action Dropdown & Details states
-  const [activeDropdownEmail, setActiveDropdownEmail] = React.useState<string | null>(null)
+  // Action & Details states
   const [viewingMember, setViewingMember] = React.useState<any | null>(null)
   const [editingMember, setEditingMember] = React.useState<any | null>(null)
+  const [deletingMember, setDeletingMember] = React.useState<any | null>(null)
   const [expandedEmails, setExpandedEmails] = React.useState<Record<string, boolean>>({})
 
   // Edit member form states
   const [editName, setEditName] = React.useState("")
   const [editPhone, setEditPhone] = React.useState("")
   const [editAddress, setEditAddress] = React.useState("")
-
-  React.useEffect(() => {
-    const handleDocumentClick = () => {
-      setActiveDropdownEmail(null)
-    }
-    document.addEventListener("click", handleDocumentClick)
-    return () => {
-      document.removeEventListener("click", handleDocumentClick)
-    }
-  }, [])
 
   // View & Filter states
   const [viewMode, setViewMode] = React.useState<"table" | "grid">("table")
@@ -82,7 +88,7 @@ export default function MembersPage() {
   }, [members, searchTerm, statusFilter])
 
   return (
-    <div className="space-y-6 w-full max-w-full overflow-hidden">
+    <div className="space-y-6 w-full max-w-full">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Members</h1>
         <p className="text-muted-foreground font-medium">
@@ -211,7 +217,7 @@ export default function MembersPage() {
       {viewMode === "table" ? (
         <>
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto overflow-y-hidden w-full max-w-full border-t border-b border-border">
+          <div className="hidden md:block overflow-x-auto overflow-y-visible w-full max-w-full border-t border-b border-border">
             <table className="w-full text-xs text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
@@ -273,59 +279,30 @@ export default function MembersPage() {
                         </span>
                       </div>
                     </td>
-                    <td className="p-4 text-right relative">
-                      <Button 
-                        variant="ghost" 
-                        size="icon-sm" 
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setActiveDropdownEmail(activeDropdownEmail === member.email ? null : member.email)
-                        }}
-                        className="rounded-none text-muted-foreground cursor-pointer"
-                      >
-                        <MoreVertical className="size-4" />
-                      </Button>
-
-                      {activeDropdownEmail === member.email && (
-                        <div className={`absolute right-4 w-44 bg-background border border-border shadow-md z-30 flex flex-col text-left py-1 rounded-none ${
-                          filteredMembers.length > 2 && idx >= filteredMembers.length - 2 
-                            ? "bottom-full mb-1" 
-                            : "top-full mt-1"
-                        }`}>
-                          <button
-                            onClick={() => {
-                              setViewingMember(member)
-                              setActiveDropdownEmail(null)
-                            }}
-                            className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-foreground flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                          >
-                            <Eye className="size-3.5 text-muted-foreground mr-1.5" /> View Details
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingMember(member)
-                              setEditName(member.name)
-                              setEditPhone(member.phone)
-                              setEditAddress(member.address)
-                              setActiveDropdownEmail(null)
-                            }}
-                            className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-foreground flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                          >
-                            <Edit className="size-3.5 text-muted-foreground mr-1.5" /> Edit Details
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete ${member.name}?`)) {
-                                deleteMember(member.email)
-                              }
-                              setActiveDropdownEmail(null)
-                            }}
-                            className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-red-600 flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                          >
-                            <Trash2 className="size-3.5 text-red-500 mr-1.5" /> Delete Member
-                          </button>
-                        </div>
-                      )}
+                    <td className="p-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon-sm" className="rounded-none text-muted-foreground cursor-pointer">
+                            <MoreVertical className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44 rounded-none">
+                          <DropdownMenuItem className="text-xs font-bold cursor-pointer" onClick={() => setViewingMember(member)}>
+                            <Eye className="size-3.5 mr-2 text-muted-foreground" /> View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-xs font-bold cursor-pointer" onClick={() => {
+                            setEditingMember(member)
+                            setEditName(member.name)
+                            setEditPhone(member.phone)
+                            setEditAddress(member.address)
+                          }}>
+                            <Edit className="size-3.5 mr-2 text-muted-foreground" /> Edit Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-xs font-bold cursor-pointer text-red-600 focus:text-red-600" onClick={() => setDeletingMember(member)}>
+                            <Trash2 className="size-3.5 mr-2" /> Delete Member
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))}
@@ -339,6 +316,7 @@ export default function MembersPage() {
               </tbody>
             </table>
           </div>
+          <div className="h-8" />
 
           {/* Mobile Collapsible Cards View */}
           <div className="block md:hidden space-y-3">
@@ -433,11 +411,7 @@ export default function MembersPage() {
                           variant="destructive" 
                           size="sm" 
                           className="w-full text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer h-8"
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to delete ${member.name}?`)) {
-                              deleteMember(member.email)
-                            }
-                          }}
+                          onClick={() => setDeletingMember(member)}
                         >
                           <Trash2 className="size-3 mr-1" /> Delete
                         </Button>
@@ -488,56 +462,29 @@ export default function MembersPage() {
                   </div>
                 </div>
                 
-                <div className="relative">
-                  <Button 
-                    variant="ghost" 
-                    size="icon-sm" 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveDropdownEmail(activeDropdownEmail === member.email ? null : member.email)
-                    }}
-                    className="rounded-none text-muted-foreground cursor-pointer -mr-2 -mt-2"
-                  >
-                    <MoreVertical className="size-4" />
-                  </Button>
-
-                  {activeDropdownEmail === member.email && (
-                    <div className="absolute right-0 mt-1 w-44 bg-background border border-border shadow-md z-30 flex flex-col text-left py-1 rounded-none">
-                      <button
-                        onClick={() => {
-                          setViewingMember(member)
-                          setActiveDropdownEmail(null)
-                        }}
-                        className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-foreground flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                      >
-                        <Eye className="size-3.5 text-muted-foreground mr-1.5" /> View Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingMember(member)
-                          setEditName(member.name)
-                          setEditPhone(member.phone)
-                          setEditAddress(member.address)
-                          setActiveDropdownEmail(null)
-                        }}
-                        className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-foreground flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                      >
-                        <Edit className="size-3.5 text-muted-foreground mr-1.5" /> Edit Details
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm(`Are you sure you want to delete ${member.name}?`)) {
-                            deleteMember(member.email)
-                          }
-                          setActiveDropdownEmail(null)
-                        }}
-                        className="w-full px-4 py-2 text-xs font-bold hover:bg-muted text-red-600 flex items-center gap-2 cursor-pointer border-0 bg-transparent text-left"
-                      >
-                        <Trash2 className="size-3.5 text-red-500 mr-1.5" /> Delete Member
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm" className="rounded-none text-muted-foreground cursor-pointer -mr-2 -mt-2">
+                      <MoreVertical className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44 rounded-none">
+                    <DropdownMenuItem className="text-xs font-bold cursor-pointer" onClick={() => setViewingMember(member)}>
+                      <Eye className="size-3.5 mr-2 text-muted-foreground" /> View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-xs font-bold cursor-pointer" onClick={() => {
+                      setEditingMember(member)
+                      setEditName(member.name)
+                      setEditPhone(member.phone)
+                      setEditAddress(member.address)
+                    }}>
+                      <Edit className="size-3.5 mr-2 text-muted-foreground" /> Edit Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-xs font-bold cursor-pointer text-red-600 focus:text-red-600" onClick={() => setDeletingMember(member)}>
+                      <Trash2 className="size-3.5 mr-2" /> Delete Member
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Contact / Location Details */}
@@ -711,6 +658,33 @@ export default function MembersPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation AlertDialog */}
+      <AlertDialog open={deletingMember !== null} onOpenChange={(open) => { if (!open) setDeletingMember(null) }}>
+        <AlertDialogContent className="rounded-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-bold">Delete Member</AlertDialogTitle>
+            <AlertDialogDescription className="font-medium">
+              Are you sure you want to permanently delete <span className="font-bold text-foreground">{deletingMember?.name}</span>? This action cannot be undone and all associated data will be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-none font-bold cursor-pointer">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-none font-bold bg-red-600 hover:bg-red-700 text-white cursor-pointer"
+              onClick={() => {
+                if (deletingMember) {
+                  deleteMember(deletingMember.email)
+                  setDeletingMember(null)
+                }
+              }}
+            >
+              <Trash2 className="size-3.5 mr-1.5" />
+              Delete Permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <TooltipProvider>
       <SidebarProvider>
         <AppSidebar />
-        <main className="flex flex-col h-screen flex-1 min-w-0 overflow-hidden">
+        <main className="flex flex-col h-screen flex-1 min-w-0">
           <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 bg-background">
             {/* Desktop View: Toggle Sidebar Button */}
             <div className="hidden md:block">
