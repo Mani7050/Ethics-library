@@ -384,111 +384,183 @@ export default function FinancePage() {
 
       {/* Dynamic Tab Tables list - Borderless High Fidelity */}
       {activeTab === "revenue" ? (
-        <div className="overflow-x-auto w-full max-w-full border-t border-b border-border shadow-sm">
-          <table className="w-full text-xs text-left border-collapse min-w-[900px]">
-            <thead>
-              <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
-                <th className="p-4">Student Name</th>
-                <th className="p-4">Plan Subscribed</th>
-                <th className="p-4">Paid Fees</th>
-                <th className="p-4">Payment Method</th>
-                <th className="p-4">Receipt Date</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Receipt</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.map((tx) => (
-                <tr key={tx.id} className="border-b border-border hover:bg-muted/10 transition-colors last:border-0">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${tx.color}`}>
-                        {tx.initial}
-                      </div>
-                      <span className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{tx.name}</span>
+        <>
+          {/* Mobile View: High-Density Cards */}
+          <div className="space-y-3 sm:hidden">
+            {filteredTransactions.map((tx) => (
+              <Card key={tx.id} className="rounded-none border border-border p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${tx.color}`}>
+                      {tx.initial}
                     </div>
-                  </td>
-                  <td className="p-4 text-muted-foreground font-medium">{tx.plan}</td>
-                  <td className="p-4 font-bold text-emerald-600 text-sm">{tx.amount}</td>
-                  <td className="p-4 text-muted-foreground font-medium">{tx.method}</td>
-                  <td className="p-4 text-muted-foreground font-medium">{tx.date}</td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                      {tx.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <Button variant="outline" size="sm" className="rounded-none h-7 px-2 text-[10px] font-semibold cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
-                      <Printer className="size-3 mr-1" /> Invoice
-                    </Button>
-                  </td>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">{tx.name}</h4>
+                      <p className="text-[11px] text-muted-foreground">{tx.plan}</p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-emerald-600 text-sm">₹{tx.amount}</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-border/50 text-muted-foreground">
+                  <span>{tx.method} • {tx.date}</span>
+                  <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
+                    <span className="size-1.5 rounded-full bg-emerald-500" />
+                    {tx.status}
+                  </span>
+                </div>
+              </Card>
+            ))}
+            {filteredTransactions.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground font-semibold border border-dashed rounded-none">
+                No transactions found.
+              </div>
+            )}
+          </div>
+
+          {/* Desktop View: Full Data Table */}
+          <div className="hidden sm:block overflow-x-auto w-full max-w-full border-t border-b border-border shadow-sm">
+            <table className="w-full text-xs text-left border-collapse min-w-[750px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
+                  <th className="p-4">Student Name</th>
+                  <th className="p-4">Plan Subscribed</th>
+                  <th className="p-4">Paid Fees</th>
+                  <th className="p-4">Payment Method</th>
+                  <th className="p-4">Receipt Date</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Receipt</th>
                 </tr>
-              ))}
-              {filteredTransactions.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground font-semibold">
-                    No transactions found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredTransactions.map((tx) => (
+                  <tr key={tx.id} className="border-b border-border hover:bg-muted/10 transition-colors last:border-0">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${tx.color}`}>
+                          {tx.initial}
+                        </div>
+                        <span className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{tx.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-muted-foreground font-medium">{tx.plan}</td>
+                    <td className="p-4 font-bold text-emerald-600 text-sm">₹{tx.amount}</td>
+                    <td className="p-4 text-muted-foreground font-medium">{tx.method}</td>
+                    <td className="p-4 text-muted-foreground font-medium">{tx.date}</td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center gap-1 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
+                        <span className="size-1.5 rounded-full bg-emerald-500" />
+                        {tx.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <Button variant="outline" size="sm" className="rounded-none h-7 px-2 text-[10px] font-semibold cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
+                        <Printer className="size-3 mr-1" /> Invoice
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredTransactions.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground font-semibold">
+                      No transactions found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       ) : (
-        <div className="overflow-x-auto w-full max-w-full border-t border-b border-border shadow-sm">
-          <table className="w-full text-xs text-left border-collapse min-w-[900px]">
-            <thead>
-              <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
-                <th className="p-4">Expense Title</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Cost</th>
-                <th className="p-4">Paid Date</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredExpenses.map((exp) => (
-                <tr key={exp.id} className="border-b border-border hover:bg-muted/10 transition-colors last:border-0">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${exp.color}`}>
-                        {exp.initial}
-                      </div>
-                      <span className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{exp.title}</span>
+        <>
+          {/* Mobile View: High-Density Expense Cards */}
+          <div className="space-y-3 sm:hidden">
+            {filteredExpenses.map((exp) => (
+              <Card key={exp.id} className="rounded-none border border-border p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${exp.color}`}>
+                      {exp.initial}
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded text-[10px] font-bold">
-                      {exp.category}
-                    </span>
-                  </td>
-                  <td className="p-4 font-bold text-rose-600 text-sm">-{exp.amount}</td>
-                  <td className="p-4 text-muted-foreground font-medium">{exp.date}</td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center gap-1 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 text-[10px] font-bold">
-                      <span className="size-1.5 rounded-full bg-zinc-400" />
-                      Cleared
-                    </span>
-                  </td>
-                  <td className="p-4 text-right">
-                    <Button variant="ghost" size="icon-sm" className="rounded-none text-muted-foreground cursor-pointer">
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </td>
+                    <div>
+                      <h4 className="font-bold text-sm text-foreground">{exp.title}</h4>
+                      <span className="bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-1.5 py-0.2 rounded text-[9px] font-bold">
+                        {exp.category}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="font-bold text-rose-600 text-sm">-₹{exp.amount}</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-border/50 text-muted-foreground">
+                  <span>{exp.date}</span>
+                  <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-400 font-bold">
+                    <span className="size-1.5 rounded-full bg-zinc-400" />
+                    Cleared
+                  </span>
+                </div>
+              </Card>
+            ))}
+            {filteredExpenses.length === 0 && (
+              <div className="p-8 text-center text-muted-foreground font-semibold border border-dashed rounded-none">
+                No expenditures found.
+              </div>
+            )}
+          </div>
+
+          {/* Desktop View: Full Expense Table */}
+          <div className="hidden sm:block overflow-x-auto w-full max-w-full border-t border-b border-border shadow-sm">
+            <table className="w-full text-xs text-left border-collapse min-w-[750px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/10 font-bold text-zinc-800 dark:text-zinc-200">
+                  <th className="p-4">Expense Title</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Cost</th>
+                  <th className="p-4">Paid Date</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right"></th>
                 </tr>
-              ))}
-              {filteredExpenses.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-8 text-center text-muted-foreground font-semibold">
-                    No expenditures found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredExpenses.map((exp) => (
+                  <tr key={exp.id} className="border-b border-border hover:bg-muted/10 transition-colors last:border-0">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`size-8 rounded-full flex items-center justify-center font-bold text-xs ${exp.color}`}>
+                          {exp.initial}
+                        </div>
+                        <span className="font-bold text-sm text-zinc-950 dark:text-zinc-50">{exp.title}</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 rounded text-[10px] font-bold">
+                        {exp.category}
+                      </span>
+                    </td>
+                    <td className="p-4 font-bold text-rose-600 text-sm">-₹{exp.amount}</td>
+                    <td className="p-4 text-muted-foreground font-medium">{exp.date}</td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center gap-1 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 px-2 py-0.5 text-[10px] font-bold">
+                        <span className="size-1.5 rounded-full bg-zinc-400" />
+                        Cleared
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <Button variant="ghost" size="icon-sm" className="rounded-none text-muted-foreground cursor-pointer">
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {filteredExpenses.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-muted-foreground font-semibold">
+                      No expenditures found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )
