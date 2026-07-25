@@ -10,7 +10,6 @@ server/dist/
 # Environment files - DO NOT COMMIT
 .env
 .env.local
-.env.production
 server/.env
 client/.env
 
