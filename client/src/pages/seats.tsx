@@ -17,7 +17,8 @@ export default function SeatsPage() {
     editOccupiedSeatTimings,
     renameCategory,
     deleteCategory,
-    members 
+    members,
+    addToast
   } = useLibrary()
 
   const [selectedSeatId, setSelectedSeatId] = React.useState<number | null>(null)
@@ -44,27 +45,67 @@ export default function SeatsPage() {
   const [generalChosenSeatId, setGeneralChosenSeatId] = React.useState<number | "">("")
 
   // Dynamic seat additions
+  const DEFAULT_CATEGORIES = ["General Desk", "Premium Desk", "VIP Cabin"]
   const [newSeatCategory, setNewSeatCategory] = React.useState<string>("")
-  const [categoriesList, setCategoriesList] = React.useState<string[]>([
-    "General Desk",
-    "Premium Desk",
-    "VIP Cabin"
-  ])
+  const [customSeatNumberInput, setCustomSeatNumberInput] = React.useState<string>("")
+  
+  const sanitizeCategories = (cats: string[]) => {
+    return cats.filter(
+      (c) =>
+        c &&
+        c.toLowerCase() !== "all" &&
+        c.toLowerCase() !== "all desk" &&
+        c.toLowerCase() !== "all desks"
+    )
+  }
+
+  const [categoriesList, setCategoriesList] = React.useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("ethics_library_categories")
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed)) {
+          return sanitizeCategories(parsed)
+        }
+      }
+    } catch {}
+    const seatCats = seats.map((s) => s.category)
+    return sanitizeCategories(Array.from(new Set([...DEFAULT_CATEGORIES, ...seatCats])))
+  })
+
   const [isAddingCustomCategory, setIsAddingCustomCategory] = React.useState(false)
   const [customCategoryName, setCustomCategoryName] = React.useState("")
   const [isEditingCustomCategoryName, setIsEditingCustomCategoryName] = React.useState<string | null>(null)
   const [editCategoryNewName, setEditCategoryNewName] = React.useState("")
+  const [confirmDeleteCategoryName, setConfirmDeleteCategoryName] = React.useState<string | null>(null)
 
+  // Persist categories in localStorage
   React.useEffect(() => {
-    const unique = Array.from(new Set(seats.map(s => s.category)))
-    const defaults = ["General Desk", "Premium Desk", "VIP Cabin"]
-    const combined = Array.from(new Set([...defaults, ...unique]))
-    setCategoriesList(combined)
+    try {
+      localStorage.setItem("ethics_library_categories", JSON.stringify(categoriesList))
+    } catch {}
+  }, [categoriesList])
+
+  // Include any seat categories from API that are missing from categoriesList
+  React.useEffect(() => {
+    const seatCats = Array.from(new Set(seats.map((s) => s.category)))
+    setCategoriesList((prev) => {
+      const cleaned = sanitizeCategories(prev)
+      const missing = sanitizeCategories(seatCats).filter((cat) => !cleaned.includes(cat))
+      if (missing.length > 0 || cleaned.length !== prev.length) {
+        return Array.from(new Set([...cleaned, ...missing]))
+      }
+      return prev
+    })
   }, [seats])
 
   const handleCreateCustomCategory = () => {
     const trimmed = customCategoryName.trim()
     if (!trimmed) return
+    if (trimmed.toLowerCase() === "all" || trimmed.toLowerCase() === "all desks" || trimmed.toLowerCase() === "all desk") {
+      addToast?.("'All Desks' is reserved for filtering. Please enter a specific category name.", "warning")
+      return
+    }
     if (!categoriesList.includes(trimmed)) {
       setCategoriesList((prev) => [...prev, trimmed])
     }
@@ -90,15 +131,29 @@ export default function SeatsPage() {
     setEditCategoryNewName("")
   }
 
-  const handleDeleteCategory = () => {
-    if (!newSeatCategory) return
-    if (newSeatCategory === "General Desk") {
-      alert("Cannot delete the default 'General Desk' category.")
+  const handleDeleteCategoryClick = () => {
+    if (!newSeatCategory) {
+      addToast?.("Please select a seat category first.", "warning")
       return
     }
-    if (confirm(`Are you sure you want to delete the category "${newSeatCategory}"? Any seats in this category will be reassigned to "General Desk".`)) {
-      deleteCategory(newSeatCategory)
-      setNewSeatCategory("")
+    setConfirmDeleteCategoryName(newSeatCategory)
+  }
+
+  const handleConfirmCategoryDelete = () => {
+    if (confirmDeleteCategoryName) {
+      deleteCategory(confirmDeleteCategoryName)
+      const remainingCats = categoriesList.filter((cat) => cat !== confirmDeleteCategoryName)
+      setCategoriesList(remainingCats)
+
+      const fallbackCat = remainingCats[0] || ""
+      if (newSeatCategory === confirmDeleteCategoryName) {
+        setNewSeatCategory(fallbackCat)
+      }
+      if (categoryFilter === confirmDeleteCategoryName) {
+        setCategoryFilter("All")
+      }
+      addToast?.(`Category '${confirmDeleteCategoryName}' deleted successfully.`, "info")
+      setConfirmDeleteCategoryName(null)
     }
   }
 
@@ -141,10 +196,8 @@ export default function SeatsPage() {
 
   // Computed categories for visual filtering
   const categories = React.useMemo(() => {
-    const list = Array.from(new Set(seats.map((s) => s.category)))
-    const defaults = ["General Desk", "Premium Desk", "VIP Cabin"]
-    return ["All", ...Array.from(new Set([...defaults, ...list]))]
-  }, [seats])
+    return ["All", ...categoriesList]
+  }, [categoriesList])
 
   // Filter seats shown in visual layout based on category selection
   const filteredSeats = React.useMemo(() => {
@@ -205,10 +258,12 @@ export default function SeatsPage() {
   const handleAddSeat = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newSeatCategory) {
-      alert("Please select a seat category first.")
+      addToast?.("Please select a seat category first.", "warning")
       return
     }
-    addNewSeat(newSeatCategory)
+    const customNum = customSeatNumberInput.trim() ? parseInt(customSeatNumberInput.trim(), 10) : undefined
+    addNewSeat(newSeatCategory, customNum)
+    setCustomSeatNumberInput("")
     setIsAddSeatMode(false)
   }
 
@@ -335,23 +390,25 @@ export default function SeatsPage() {
           </div>
 
           {/* Category Filter Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-4">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 border transition-all cursor-pointer ${
-                    categoryFilter === cat
-                      ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-transparent"
-                      : "bg-background border-border text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {cat === "All" ? "All Desks" : `${cat}s`}
-                </button>
-              ))}
+          {categoriesList.length > 0 && (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-4">
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 border transition-all cursor-pointer ${
+                      categoryFilter === cat
+                        ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 border-transparent"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {cat === "All" ? "All Desks" : cat}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Seat Grid */}
           <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-12 gap-2">
@@ -424,7 +481,7 @@ export default function SeatsPage() {
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={handleDeleteCategory}
+                            onClick={handleDeleteCategoryClick}
                             className="size-9 rounded-none flex items-center justify-center p-0 cursor-pointer text-destructive hover:bg-destructive/10"
                             title="Delete Category"
                           >
@@ -441,6 +498,62 @@ export default function SeatsPage() {
                       >
                         +
                       </Button>
+                    </div>
+                  </div>
+
+                  {/* Seat / Desk Number Input */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Seat / Desk Number (Optional)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="e.g. 5, 10, 101 (Khali chhodne par auto #)"
+                      value={customSeatNumberInput}
+                      onChange={(e) => setCustomSeatNumberInput(e.target.value)}
+                      className="w-full text-xs p-2 bg-background border border-input rounded-none focus:outline-none"
+                    />
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      Specific desk number likhein ya khali chhodein auto sequential number ke liye.
+                    </p>
+                  </div>
+
+                  {/* Registered Categories list with direct Edit & Delete */}
+                  <div className="pt-2 space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Manage Existing Categories</label>
+                    <div className="flex flex-wrap gap-2">
+                      {categoriesList.map((cat) => (
+                        <div key={cat} className="flex items-center gap-1.5 border border-border px-2.5 py-1 text-xs font-bold bg-muted/40 text-foreground">
+                          <span>{cat}</span>
+                          <div className="flex items-center gap-1 ml-1.5 border-l pl-1.5 border-border">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsEditingCustomCategoryName(cat)
+                                setEditCategoryNewName(cat)
+                              }}
+                              className="text-muted-foreground hover:text-foreground cursor-pointer p-0.5"
+                              title="Rename Category"
+                            >
+                              <Pencil className="size-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteCategoryName(cat)}
+                              className="text-muted-foreground hover:text-red-600 cursor-pointer p-0.5"
+                              title="Delete Category"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {categoriesList.length === 0 && (
+                        <div className="text-xs text-muted-foreground font-medium py-1">
+                          No categories configured. Click + to add one.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -786,7 +899,7 @@ export default function SeatsPage() {
         </SheetContent>
       </Sheet>
       {isAddingCustomCategory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 animate-in fade-in zoom-in-95 duration-150">
           <div className="bg-background border border-border p-6 max-w-sm w-full mx-4 shadow-2xl rounded-none relative">
             <h3 className="text-lg font-bold text-foreground mb-1">Add New Category</h3>
             <p className="text-xs text-muted-foreground mb-4">
@@ -837,7 +950,7 @@ export default function SeatsPage() {
       )}
 
       {isEditingCustomCategoryName !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 animate-in fade-in zoom-in-95 duration-150">
           <div className="bg-background border border-border p-6 max-w-sm w-full mx-4 shadow-2xl rounded-none relative">
             <h3 className="text-lg font-bold text-foreground mb-1">Edit Category</h3>
             <p className="text-xs text-muted-foreground mb-4">
@@ -882,6 +995,39 @@ export default function SeatsPage() {
                   Save Changes
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirmation Modal for Deleting Category */}
+      {confirmDeleteCategoryName && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-background border border-border p-6 max-w-md w-full mx-4 shadow-2xl rounded-none relative text-left">
+            <h3 className="text-lg font-bold text-foreground mb-1">Delete Seat Category</h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Are you sure you want to delete category <span className="font-bold text-foreground">"{confirmDeleteCategoryName}"</span>? Any seats in this category will be automatically reassigned to <span className="font-bold text-foreground">"General Desk"</span>.
+            </p>
+            
+            <div className="flex justify-end gap-2.5 pt-4 border-t mt-4">
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm" 
+                onClick={() => setConfirmDeleteCategoryName(null)}
+                className="rounded-none font-bold text-xs cursor-pointer px-4"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button"
+                variant="destructive" 
+                size="sm" 
+                onClick={handleConfirmCategoryDelete}
+                className="rounded-none font-bold text-xs cursor-pointer px-4"
+              >
+                Delete Category
+              </Button>
             </div>
           </div>
         </div>

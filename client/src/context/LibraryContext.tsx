@@ -111,7 +111,9 @@ interface LibraryContextType {
   collectFee: (memberEmail: string, planName: string, amount: number, method: string) => Promise<void>
   logExpense: (title: string, category: string, amount: number) => Promise<void>
   assignMembership: (memberEmail: string, planName: string) => Promise<boolean>
-  addNewSeat: (category: Seat["category"]) => Promise<void>
+  toggleSubscriptionStatus: (id: string) => Promise<void>
+  deleteSubscription: (id: string) => Promise<void>
+  addNewSeat: (category: Seat["category"], customSeatNumber?: number) => Promise<void>
   editOccupiedSeatTimings: (seatId: number, checkInTime: string, assignedShift: Seat["assignedShift"]) => Promise<void>
   renameCategory: (oldName: string, newName: string) => Promise<void>
   deleteCategory: (categoryName: string) => Promise<void>
@@ -521,19 +523,55 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const addNewSeat = async (category: Seat["category"]) => {
+  const toggleSubscriptionStatus = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/subscriptions/${id}/toggle`, {
+        method: "PATCH",
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      setSubscriptions((prev) => prev.map((s) => (s.id === id ? updated : s)))
+      addToast(`Subscription status updated to ${updated.status}`, "info")
+    } catch (err) {
+      setSubscriptions((prev) =>
+        prev.map((s) =>
+          s.id === id ? { ...s, status: s.status === "Active" ? "Expired" : "Active" } : s
+        )
+      )
+      addToast("Updated subscription status", "info")
+    }
+  }
+
+  const deleteSubscription = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/subscriptions/${id}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error()
+      setSubscriptions((prev) => prev.filter((s) => s.id !== id))
+      addToast("Subscription deleted", "info")
+    } catch (err) {
+      setSubscriptions((prev) => prev.filter((s) => s.id !== id))
+      addToast("Subscription deleted", "info")
+    }
+  }
+
+  const addNewSeat = async (category: Seat["category"], customSeatNumber?: number) => {
     try {
       const res = await fetch(`${API_BASE_URL}/seats/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category }),
+        body: JSON.stringify({ category, customSeatNumber }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to add new seat")
+      }
       const newSeat = await res.json()
       setSeats((prev) => [...prev, newSeat])
       addToast(`New Seat #${newSeat.id} (${category}) added successfully!`, "success")
-    } catch (err) {
-      addToast("Failed to add new seat", "error")
+    } catch (err: any) {
+      addToast(err.message || "Failed to add new seat", "error")
     }
   }
 
@@ -614,6 +652,8 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         collectFee,
         logExpense,
         assignMembership,
+        toggleSubscriptionStatus,
+        deleteSubscription,
         addNewSeat,
         editOccupiedSeatTimings,
         renameCategory,

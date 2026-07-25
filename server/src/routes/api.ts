@@ -525,17 +525,31 @@ router.post("/seats/:id/away", asyncHandler(async (req: Request, res: Response) 
 
 // POST /seats/add
 router.post("/seats/add", asyncHandler(async (req: Request, res: Response) => {
-  const { category } = req.body;
+  const { category, customSeatNumber } = req.body;
 
   if (!category) {
     return res.status(400).json({ error: "Category is required" });
   }
 
-  const maxSeat = await Seat.findOne().sort({ id: -1 });
-  const nextId = maxSeat ? maxSeat.id + 1 : 1;
+  let seatId: number;
+
+  if (customSeatNumber && !isNaN(Number(customSeatNumber))) {
+    const desiredId = Number(customSeatNumber);
+    if (desiredId <= 0) {
+      return res.status(400).json({ error: "Seat number must be greater than 0" });
+    }
+    const existing = await Seat.findOne({ id: desiredId });
+    if (existing) {
+      return res.status(400).json({ error: `Seat Desk #${desiredId} already exists.` });
+    }
+    seatId = desiredId;
+  } else {
+    const maxSeat = await Seat.findOne().sort({ id: -1 });
+    seatId = maxSeat ? maxSeat.id + 1 : 1;
+  }
 
   const newSeat = new Seat({
-    id: nextId,
+    id: seatId,
     status: "Available",
     occupiedBy: "",
     occupiedByEmail: "",
@@ -843,6 +857,32 @@ router.post("/subscriptions", asyncHandler(async (req: Request, res: Response) =
   await newTx.save();
 
   res.status(201).json({ subscription: newSub, transaction: newTx });
+}));
+
+// PATCH /subscriptions/:id/toggle
+router.patch("/subscriptions/:id/toggle", asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const sub = await Subscription.findOne({ id });
+  if (!sub) {
+    return res.status(404).json({ error: "Subscription not found" });
+  }
+
+  sub.status = sub.status === "Active" ? "Expired" : "Active";
+  await sub.save();
+  res.json(sub);
+}));
+
+// DELETE /subscriptions/:id
+router.delete("/subscriptions/:id", asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await Subscription.deleteOne({ id });
+  if (result.deletedCount === 0) {
+    return res.status(404).json({ error: "Subscription not found" });
+  }
+
+  res.json({ message: "Subscription deleted successfully" });
 }));
 
 export default router;

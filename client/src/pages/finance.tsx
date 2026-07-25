@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useLibrary } from "@/context/LibraryContext"
@@ -132,50 +132,58 @@ export default function FinancePage() {
       </div>
 
       {/* Finance KPI cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="rounded-none border border-border shadow-sm">
-          <CardHeader className="p-4 pb-2">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-0.5">
-              <ArrowUpRight className="size-3 text-emerald-500 mr-1" />
-              Today's Collection
-            </span>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-emerald-600">₹{todayCollection.toLocaleString()}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 font-medium font-medium">UPI & Cash receipts processed today.</p>
+          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-0.5">
+                <ArrowUpRight className="size-3 text-emerald-500 mr-0.5" />
+                Today's Collection
+              </p>
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5">₹{todayCollection.toLocaleString()}</h3>
+            </div>
+            <div className="px-2 py-1 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 text-xs font-bold shrink-0">
+              ₹{(todayCollection / 1000).toFixed(1)}k
+            </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-none border border-border shadow-sm">
-          <CardHeader className="p-4 pb-2">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground">Monthly Revenue</span>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold">₹{monthlyRevenue.toLocaleString()}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 font-medium">Total revenue collected this month.</p>
+          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground">Monthly Revenue</p>
+              <h3 className="text-xl sm:text-2xl font-bold mt-0.5">₹{monthlyRevenue.toLocaleString()}</h3>
+            </div>
+            <div className="px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold shrink-0">
+              ₹{(monthlyRevenue / 1000).toFixed(1)}k
+            </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-none border border-border shadow-sm">
-          <CardHeader className="p-4 pb-2">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-0.5">
-              <ArrowDownRight className="size-3 text-rose-500 mr-1" />
-              Total Expenses
-            </span>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-rose-600">₹{totalExpenses.toLocaleString()}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 font-medium">Space rent, utilities, wifi & salary expenses.</p>
+          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-0.5">
+                <ArrowDownRight className="size-3 text-rose-500 mr-0.5" />
+                Total Expenses
+              </p>
+              <h3 className="text-xl sm:text-2xl font-bold text-rose-600 mt-0.5">₹{totalExpenses.toLocaleString()}</h3>
+            </div>
+            <div className="px-2 py-1 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-600 text-xs font-bold shrink-0">
+              ₹{(totalExpenses / 1000).toFixed(1)}k
+            </div>
           </CardContent>
         </Card>
 
         <Card className="rounded-none border border-border bg-emerald-50/10 shadow-sm">
-          <CardHeader className="p-4 pb-2">
-            <span className="text-[10px] uppercase font-bold text-emerald-600">Net Library Income</span>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-2xl font-bold text-emerald-600">₹{netIncome.toLocaleString()}</div>
-            <p className="text-[10px] text-muted-foreground mt-1 font-medium">Operational margins for July.</p>
+          <CardContent className="p-3.5 sm:p-4 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-emerald-600">Net Library Income</p>
+              <h3 className="text-xl sm:text-2xl font-bold text-emerald-600 mt-0.5">₹{netIncome.toLocaleString()}</h3>
+            </div>
+            <div className="px-2 py-1 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 text-xs font-bold shrink-0">
+              ₹{(netIncome / 1000).toFixed(1)}k
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -296,11 +304,11 @@ export default function FinancePage() {
                     </div>
                   </div>
 
-                  <SheetFooter className="pt-4 border-t mt-auto">
+                  <SheetFooter className="pt-4 border-t mt-auto flex flex-row items-center justify-end gap-2.5">
                     <SheetClose asChild>
-                      <Button type="button" variant="outline" className="rounded-none w-full cursor-pointer font-bold">Cancel</Button>
+                      <Button type="button" variant="outline" size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">Cancel</Button>
                     </SheetClose>
-                    <Button type="submit" disabled={!revenueEmail || !revenueAmount} className="rounded-none w-full cursor-pointer font-bold">Collect Fee</Button>
+                    <Button type="submit" disabled={!revenueEmail || !revenueAmount} size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">Collect Fee</Button>
                   </SheetFooter>
                 </form>
               </SheetContent>
@@ -361,11 +369,11 @@ export default function FinancePage() {
                     </div>
                   </div>
 
-                  <SheetFooter className="pt-4 border-t mt-auto">
+                  <SheetFooter className="pt-4 border-t mt-auto flex flex-row items-center justify-end gap-2.5">
                     <SheetClose asChild>
-                      <Button type="button" variant="outline" className="rounded-none w-full cursor-pointer font-bold">Cancel</Button>
+                      <Button type="button" variant="outline" size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">Cancel</Button>
                     </SheetClose>
-                    <Button type="submit" disabled={!expenseTitle || !expenseAmount} className="rounded-none w-full cursor-pointer font-bold">Save Expense</Button>
+                    <Button type="submit" disabled={!expenseTitle || !expenseAmount} size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">Save Expense</Button>
                   </SheetFooter>
                 </form>
               </SheetContent>

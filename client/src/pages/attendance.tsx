@@ -207,11 +207,11 @@ export default function AttendancePage() {
                   </div>
                 </div>
 
-                <SheetFooter className="pt-4 border-t mt-auto">
+                <SheetFooter className="pt-4 border-t mt-auto flex flex-row items-center justify-end gap-2.5">
                   <SheetClose asChild>
-                    <Button type="button" variant="outline" className="rounded-none w-full cursor-pointer font-bold">Cancel</Button>
+                    <Button type="button" variant="outline" size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">Cancel</Button>
                   </SheetClose>
-                  <Button type="submit" disabled={!memberEmail || !selectedSeatId} className="rounded-none w-full cursor-pointer font-bold">
+                  <Button type="submit" disabled={!memberEmail || !selectedSeatId} size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">
                     Register Check-In
                   </Button>
                 </SheetFooter>

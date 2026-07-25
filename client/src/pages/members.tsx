@@ -202,11 +202,15 @@ export default function MembersPage() {
                   </div>
                 </div>
 
-                <SheetFooter className="pt-4 border-t mt-auto">
+                <SheetFooter className="pt-4 border-t mt-auto flex flex-row items-center justify-end gap-2.5">
                   <SheetClose asChild>
-                    <Button type="button" variant="outline" className="rounded-none w-full cursor-pointer font-bold">Cancel</Button>
+                    <Button type="button" variant="outline" size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">
+                      Cancel
+                    </Button>
                   </SheetClose>
-                  <Button type="submit" className="rounded-none w-full cursor-pointer font-bold">Add Member</Button>
+                  <Button type="submit" size="sm" className="rounded-none cursor-pointer font-bold px-4 text-xs">
+                    Add Member
+                  </Button>
                 </SheetFooter>
               </form>
             </SheetContent>
@@ -226,8 +230,6 @@ export default function MembersPage() {
                   <th className="p-4">Phone</th>
                   <th className="p-4">Address</th>
                   <th className="p-4">Joined</th>
-                  <th className="p-4">Last Login</th>
-                  <th className="p-4">By</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 w-[100px] text-right">Actions</th>
                 </tr>
@@ -247,37 +249,17 @@ export default function MembersPage() {
                     <td className="p-4 text-muted-foreground font-medium">{member.phone}</td>
                     <td className="p-4 text-muted-foreground font-medium">{member.address}</td>
                     <td className="p-4 text-muted-foreground font-medium">{member.joined}</td>
-                    <td className="p-4 text-muted-foreground font-medium">{member.lastLogin}</td>
                     <td className="p-4">
-                      {member.by === "App" ? (
-                        <span className="bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 px-2 py-0.5 rounded text-[10px] font-bold">App</span>
-                      ) : (
-                        <span className="text-muted-foreground font-medium">-</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        {/* CSS Toggle Switch */}
-                        <label className="relative inline-flex items-center cursor-pointer select-none">
-                          <input 
-                            type="checkbox" 
-                            checked={member.status === "Active"} 
-                            onChange={() => toggleMemberStatus(member.email)}
-                            className="sr-only peer" 
-                          />
-                          <div className="w-8 h-4.5 bg-zinc-200 dark:bg-zinc-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2.5px] after:left-[2.5px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
-                        </label>
-
-                        {/* Status Badge */}
-                        <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-bold ${
-                          member.status === "Active" 
-                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" 
-                            : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800/40 dark:text-zinc-400"
-                        }`}>
-                          <span className={`size-1.5 rounded-full ${member.status === "Active" ? "bg-emerald-500" : "bg-zinc-400"}`} />
-                          {member.status}
-                        </span>
-                      </div>
+                      {/* CSS Toggle Switch */}
+                      <label className="relative inline-flex items-center cursor-pointer select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={member.status === "Active"} 
+                          onChange={() => toggleMemberStatus(member.email)}
+                          className="sr-only peer" 
+                        />
+                        <div className="w-8 h-4.5 bg-zinc-200 dark:bg-zinc-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2.5px] after:left-[2.5px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                      </label>
                     </td>
                     <td className="p-4 text-right">
                       <DropdownMenu>
@@ -360,16 +342,12 @@ export default function MembersPage() {
                           <span className="font-semibold text-zinc-900 dark:text-zinc-100">{member.joined || "-"}</span>
                         </div>
                         <div>
-                          <span className="font-bold block text-[9px] uppercase text-muted-foreground mb-0.5">Last Login</span>
-                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{member.lastLogin || "-"}</span>
-                        </div>
-                        <div>
-                          <span className="font-bold block text-[9px] uppercase text-muted-foreground mb-0.5">By Source</span>
-                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{member.by === "App" ? "App Portal" : "Admin"}</span>
+                          <span className="font-bold block text-[9px] uppercase text-muted-foreground mb-0.5">Joined</span>
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">{member.joined || "-"}</span>
                         </div>
                         <div>
                           <span className="font-bold block text-[9px] uppercase text-muted-foreground mb-0.5">Status</span>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="mt-0.5">
                             <label className="relative inline-flex items-center cursor-pointer select-none">
                               <input 
                                 type="checkbox" 
@@ -379,7 +357,6 @@ export default function MembersPage() {
                               />
                               <div className="w-8 h-4.5 bg-zinc-200 dark:bg-zinc-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2.5px] after:left-[2.5px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
                             </label>
-                            <span className="font-bold text-[10px]">{member.status}</span>
                           </div>
                         </div>
                       </div>
@@ -646,11 +623,11 @@ export default function MembersPage() {
                 </div>
               </div>
 
-              <SheetFooter className="pt-4 border-t mt-auto flex gap-2">
-                <Button type="button" variant="outline" onClick={() => setEditingMember(null)} className="rounded-none w-full font-bold">
+              <SheetFooter className="pt-4 border-t mt-auto flex flex-row items-center justify-end gap-2.5">
+                <Button type="button" variant="outline" size="sm" onClick={() => setEditingMember(null)} className="rounded-none font-bold px-4 text-xs">
                   Cancel
                 </Button>
-                <Button type="submit" className="rounded-none w-full font-bold">
+                <Button type="submit" size="sm" className="rounded-none font-bold px-4 text-xs">
                   Save Changes
                 </Button>
               </SheetFooter>
