@@ -44,7 +44,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 
 // POST /auth/register
 router.post("/auth/register", asyncHandler(async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, address } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ error: "Name, email, and password are required" });
@@ -73,6 +73,44 @@ router.post("/auth/register", asyncHandler(async (req: Request, res: Response) =
   });
 
   await newUser.save();
+
+  // Also auto-create a Member profile so the user appears in the Library Members registry
+  const existingMember = await Member.findOne({ email: email.toLowerCase() });
+  if (!existingMember) {
+    const initialVal = name
+      .trim()
+      .split(" ")
+      .map((n: string) => n.charAt(0))
+      .join("")
+      .toUpperCase() || "U";
+
+    const colors = [
+      "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400",
+      "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+      "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+      "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+    ];
+    const membersCount = await Member.countDocuments();
+    const randomColor = colors[membersCount % colors.length];
+
+    const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const formattedDate = new Date().toLocaleDateString("en-US", options);
+
+    const newMember = new Member({
+      name,
+      email: email.toLowerCase(),
+      phone: phone || "-",
+      address: address || "-",
+      joined: formattedDate,
+      lastLogin: "N/A",
+      by: "App Signup",
+      status: "Active",
+      initial: initialVal,
+      color: randomColor,
+    });
+    await newMember.save();
+  }
 
   const token = jwt.sign(
     { userId: newUser._id, email: newUser.email, role: newUser.role },
@@ -164,8 +202,56 @@ router.use(requireAuth);
 
 // GET /members
 router.get("/members", asyncHandler(async (req: Request, res: Response) => {
+  const users = await User.find().select("name email createdAt");
   const members = await Member.find().sort({ joined: -1 });
-  res.json(members);
+
+  const dateOptions: Intl.DateTimeFormatOptions = { 
+    month: "short", 
+    day: "numeric", 
+    year: "numeric", 
+    hour: "2-digit", 
+    minute: "2-digit"
+  };
+
+  const colors = [
+    "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400",
+    "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+    "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+    "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  ];
+
+  const userMap = new Map(users.map((u) => [u.email.toLowerCase(), u]));
+
+  const sanitized = members.map((m, idx) => {
+    const obj = m.toObject();
+    const name = obj.name || "Member";
+    const user = userMap.get((obj.email || "").toLowerCase());
+    
+    // Determine real signup timestamp from User createdAt or Mongo _id timestamp
+    let actualJoined = obj.joined;
+    if (!actualJoined || actualJoined === "N/A" || actualJoined.startsWith("Jul 26, 2026, 12:4")) {
+      const realTime = user?.createdAt || (m._id ? (m._id as any).getTimestamp() : null);
+      if (realTime) {
+        actualJoined = new Date(realTime).toLocaleDateString("en-US", dateOptions);
+      }
+    }
+
+    return {
+      ...obj,
+      name,
+      email: obj.email || "",
+      phone: obj.phone || "-",
+      address: obj.address || "-",
+      joined: actualJoined || new Date().toLocaleDateString("en-US", dateOptions),
+      by: obj.by || (user ? "App Signup" : "Dashboard"),
+      status: obj.status || "Active",
+      initial: obj.initial || (name ? name.split(" ").map((n: string) => n.charAt(0)).join("").toUpperCase() : "U"),
+      color: obj.color || colors[idx % colors.length],
+    };
+  });
+
+  res.json(sanitized);
 }));
 
 // POST /members

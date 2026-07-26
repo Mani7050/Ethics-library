@@ -114,11 +114,13 @@ export default function MembershipPage() {
 
   // Filter subscriptions
   const filteredSubscriptions = React.useMemo(() => {
-    return subscriptions.filter((sub) => {
+    const term = (searchTerm || "").toLowerCase()
+    return (subscriptions || []).filter((sub) => {
+      if (!sub) return false
       const matchesSearch =
-        sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.plan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (sub.name || "").toLowerCase().includes(term) ||
+        (sub.plan || "").toLowerCase().includes(term) ||
+        (sub.email || "").toLowerCase().includes(term)
 
       const matchesStatus = statusFilter === "All" || sub.status === statusFilter
 

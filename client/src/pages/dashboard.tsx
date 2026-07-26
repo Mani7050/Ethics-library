@@ -29,46 +29,47 @@ export default function DashboardPage() {
   }, [])
 
   // Dynamic calculations
-  const totalMembersCount = members.length
-  const activeMembersCount = members.filter((m) => m.status === "Active").length
-  const occupiedSeatsCount = seats.filter((s) => s.status === "Occupied").length
-  const availableSeatsCount = seats.filter((s) => s.status === "Available").length
-  const maintenanceSeatsCount = seats.filter((s) => s.status === "Maintenance").length
-  const reservedSeatsCount = seats.filter((s) => s.status === "Reserved").length
+  const totalMembersCount = (members || []).length
+  const activeMembersCount = (members || []).filter((m) => m && m.status === "Active").length
+  const occupiedSeatsCount = (seats || []).filter((s) => s && s.status === "Occupied").length
+  const availableSeatsCount = (seats || []).filter((s) => s && s.status === "Available").length
+  const maintenanceSeatsCount = (seats || []).filter((s) => s && s.status === "Maintenance").length
+  const reservedSeatsCount = (seats || []).filter((s) => s && s.status === "Reserved").length
 
   // Parse amount helper (e.g., "₹1,500" -> 1500)
-  const parseAmount = (amtStr: string) => {
+  const parseAmount = (amtStr?: string) => {
+    if (!amtStr) return 0
     return parseInt(amtStr.replace(/[₹,]/g, ""), 10) || 0
   }
 
   // Calculate today's revenue (transactions created today)
   const todayRevenue = React.useMemo(() => {
-    return transactions
-      .filter((tx) => tx.date.includes(todayStr))
+    return (transactions || [])
+      .filter((tx) => tx && tx.date && typeof tx.date === "string" && tx.date.includes(todayStr))
       .reduce((sum, tx) => sum + parseAmount(tx.amount), 0)
   }, [transactions, todayStr])
 
   // Calculate monthly revenue
   const monthlyRevenue = React.useMemo(() => {
-    return transactions.reduce((sum, tx) => sum + parseAmount(tx.amount), 0)
+    return (transactions || []).reduce((sum, tx) => sum + parseAmount(tx?.amount), 0)
   }, [transactions])
 
   // Calculate total expenses
   const totalExpenses = React.useMemo(() => {
-    return expenses.reduce((sum, exp) => sum + parseAmount(exp.amount), 0)
+    return (expenses || []).reduce((sum, exp) => sum + parseAmount(exp?.amount), 0)
   }, [expenses])
 
   // Today's Live Counters
-  const todayCheckIns = attendanceLogs.filter((log) => log.date === todayStr).length
-  const todayCheckOuts = attendanceLogs.filter((log) => log.date === todayStr && log.status === "Checked Out").length
-  const insideCount = attendanceLogs.filter((log) => log.status === "Inside").length
-  const newAdmissions = members.filter((m) => m.joined.includes(todayStr)).length
+  const todayCheckIns = (attendanceLogs || []).filter((log) => log && log.date === todayStr).length
+  const todayCheckOuts = (attendanceLogs || []).filter((log) => log && log.date === todayStr && log.status === "Checked Out").length
+  const insideCount = (attendanceLogs || []).filter((log) => log && log.status === "Inside").length
+  const newAdmissions = (members || []).filter((m) => m && m.joined && typeof m.joined === "string" && m.joined.includes(todayStr)).length
 
   // Alerts data
   const alerts = [
     { id: 1, type: "warning", message: "12 Memberships expiring in 7 days", details: "Send auto-reminders via WhatsApp" },
-    { id: 2, type: "danger", message: `${members.filter(m => m.status === 'Inactive').length} Members with inactive status`, details: "Review cards and send renewals" },
-    { id: 3, type: "info", message: `${seats.filter(s => s.status === 'Maintenance').length} Seats currently under maintenance`, details: "Pending electrician resolution" },
+    { id: 2, type: "danger", message: `${(members || []).filter(m => m && m.status === 'Inactive').length} Members with inactive status`, details: "Review cards and send renewals" },
+    { id: 3, type: "info", message: `${(seats || []).filter(s => s && s.status === 'Maintenance').length} Seats currently under maintenance`, details: "Pending electrician resolution" },
   ]
 
   return (

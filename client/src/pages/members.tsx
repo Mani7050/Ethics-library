@@ -74,12 +74,14 @@ export default function MembersPage() {
 
   // Filter & Search logic
   const filteredMembers = React.useMemo(() => {
-    return members.filter(member => {
+    const term = (searchTerm || "").toLowerCase()
+    return (members || []).filter(member => {
+      if (!member) return false
       const matchesSearch = 
-        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.address.toLowerCase().includes(searchTerm.toLowerCase())
+        (member.name || "").toLowerCase().includes(term) ||
+        (member.email || "").toLowerCase().includes(term) ||
+        (member.phone || "").toLowerCase().includes(term) ||
+        (member.address || "").toLowerCase().includes(term)
 
       const matchesStatus = statusFilter === "All" || member.status === statusFilter
 

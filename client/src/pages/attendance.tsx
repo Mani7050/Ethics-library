@@ -70,11 +70,13 @@ export default function AttendancePage() {
 
   // Filter & Search log logic
   const filteredLogs = React.useMemo(() => {
-    return attendanceLogs.filter((log) => {
+    const term = (searchTerm || "").toLowerCase()
+    return (attendanceLogs || []).filter((log) => {
+      if (!log) return false
       const matchesSearch = 
-        log.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.seat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.email.toLowerCase().includes(searchTerm.toLowerCase())
+        (log.name || "").toLowerCase().includes(term) ||
+        (log.seat || "").toLowerCase().includes(term) ||
+        (log.email || "").toLowerCase().includes(term)
 
       const matchesStatus = statusFilter === "All" || log.status === statusFilter
 

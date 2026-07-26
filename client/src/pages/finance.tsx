@@ -69,17 +69,17 @@ export default function FinancePage() {
 
   // Dynamic calculations
   const todayCollection = React.useMemo(() => {
-    return transactions
-      .filter((tx) => tx.date.includes(todayStr))
+    return (transactions || [])
+      .filter((tx) => tx && tx.date && typeof tx.date === "string" && tx.date.includes(todayStr))
       .reduce((sum, tx) => sum + parseAmount(tx.amount), 0)
   }, [transactions, todayStr])
 
   const monthlyRevenue = React.useMemo(() => {
-    return transactions.reduce((sum, tx) => sum + parseAmount(tx.amount), 0)
+    return (transactions || []).reduce((sum, tx) => sum + parseAmount(tx?.amount), 0)
   }, [transactions])
 
   const totalExpenses = React.useMemo(() => {
-    return expenses.reduce((sum, exp) => sum + parseAmount(exp.amount), 0)
+    return (expenses || []).reduce((sum, exp) => sum + parseAmount(exp?.amount), 0)
   }, [expenses])
 
   const netIncome = monthlyRevenue - totalExpenses
@@ -106,19 +106,21 @@ export default function FinancePage() {
 
   // Filtering transactions / expenses
   const filteredTransactions = React.useMemo(() => {
-    return transactions.filter(
+    const term = (searchTerm || "").toLowerCase()
+    return (transactions || []).filter(
       (tx) =>
-        tx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.plan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tx.method.toLowerCase().includes(searchTerm.toLowerCase())
+        (tx?.name || "").toLowerCase().includes(term) ||
+        (tx?.plan || "").toLowerCase().includes(term) ||
+        (tx?.method || "").toLowerCase().includes(term)
     )
   }, [transactions, searchTerm])
 
   const filteredExpenses = React.useMemo(() => {
-    return expenses.filter(
+    const term = (searchTerm || "").toLowerCase()
+    return (expenses || []).filter(
       (exp) =>
-        exp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exp.category.toLowerCase().includes(searchTerm.toLowerCase())
+        (exp?.title || "").toLowerCase().includes(term) ||
+        (exp?.category || "").toLowerCase().includes(term)
     )
   }, [expenses, searchTerm])
 
