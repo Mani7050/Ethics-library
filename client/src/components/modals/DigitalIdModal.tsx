@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMember } from '../../context/MemberContext';
 import { QrCode, ShieldCheck, X, Printer, CheckCircle, BookOpen } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface DigitalIdModalProps {
   isOpen: boolean;
@@ -11,6 +12,10 @@ export const DigitalIdModal: React.FC<DigitalIdModalProps> = ({ isOpen, onClose 
   const { user } = useMember();
 
   if (!isOpen) return null;
+
+  const appUrl = window.location.origin.includes('localhost')
+    ? 'https://ethics-library.onrender.com'
+    : window.location.origin;
 
   const handlePrint = () => {
     window.print();
@@ -65,16 +70,16 @@ export const DigitalIdModal: React.FC<DigitalIdModalProps> = ({ isOpen, onClose 
         {/* QR Code Area */}
         <div className="p-3 rounded-lg bg-accent/30 border border-border flex items-center justify-between gap-2">
           <div className="space-y-0.5">
-            <span className="text-[9px] font-bold text-muted-foreground uppercase">Gate Barcode</span>
-            <div className="text-xs font-bold text-foreground">Turnstile Code</div>
+            <span className="text-[9px] font-bold text-muted-foreground uppercase">App Scan & Gate Pass</span>
+            <div className="text-xs font-bold text-foreground">Scannable QR Code</div>
             <div className="text-[9px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-              Live Access Active
+              Live Scan Active
             </div>
           </div>
 
-          <div className="h-14 w-14 bg-white p-1 rounded-md border border-border shadow-inner flex items-center justify-center shrink-0">
-            <QrCode className="h-full w-full text-slate-950" />
+          <div className="bg-white p-1 rounded-md border border-border shadow-inner flex items-center justify-center shrink-0">
+            <QRCodeSVG value={appUrl} size={64} level="M" />
           </div>
         </div>
 

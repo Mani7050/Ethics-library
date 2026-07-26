@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useMember } from '../../context/MemberContext';
-import { Sun, Moon, Bell, ShieldCheck, QrCode, BookOpen } from 'lucide-react';
+import { Sun, Moon, Bell, ShieldCheck, QrCode, BookOpen, Share2 } from 'lucide-react';
 import { DigitalIdModal } from '../modals/DigitalIdModal';
 import { NoticesDrawer } from '../modals/NoticesDrawer';
+import { ShareAppModal } from '../modals/ShareAppModal';
 
 export const Header: React.FC = () => {
   const { user, isDarkMode, toggleDarkMode } = useMember();
   const [showIdModal, setShowIdModal] = useState<boolean>(false);
   const [showNotices, setShowNotices] = useState<boolean>(false);
+  const [showAppQrModal, setShowAppQrModal] = useState<boolean>(false);
 
   return (
     <>
@@ -40,10 +42,20 @@ export const Header: React.FC = () => {
 
         {/* Quick Actions */}
         <div className="flex items-center gap-1.5 md:gap-2.5">
+          {/* App QR Code Scanner Link Button */}
+          <button
+            onClick={() => setShowAppQrModal(true)}
+            className="flex h-8 px-2.5 items-center gap-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 font-bold text-xs transition-colors cursor-pointer"
+            title="Scan App QR Code to Open on Phone"
+          >
+            <QrCode className="h-3.5 w-3.5 text-amber-500" />
+            <span className="hidden sm:inline">App QR</span>
+          </button>
+
           {/* Theme Switcher */}
           <button
             onClick={toggleDarkMode}
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
             title="Toggle Dark/Light Mode"
           >
             {isDarkMode ? <Sun className="h-3.5 w-3.5 text-amber-400" /> : <Moon className="h-3.5 w-3.5 text-slate-700" />}
@@ -52,7 +64,7 @@ export const Header: React.FC = () => {
           {/* Notifications */}
           <button
             onClick={() => setShowNotices(true)}
-            className="relative flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            className="relative flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
             title="Announcements & Notices"
           >
             <Bell className="h-3.5 w-3.5 text-amber-500" />
@@ -82,6 +94,9 @@ export const Header: React.FC = () => {
 
       {/* Notices Drawer */}
       <NoticesDrawer isOpen={showNotices} onClose={() => setShowNotices(false)} />
+
+      {/* Share App QR Modal */}
+      <ShareAppModal isOpen={showAppQrModal} onClose={() => setShowAppQrModal(false)} />
     </>
   );
 };
