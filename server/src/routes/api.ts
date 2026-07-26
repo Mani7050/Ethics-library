@@ -370,11 +370,30 @@ router.patch("/members/:email/toggle", asyncHandler(async (req: Request, res: Re
 // DELETE /members/:email
 router.delete("/members/:email", asyncHandler(async (req: Request, res: Response) => {
   const { email } = req.params;
+  const lowerEmail = email.toLowerCase();
 
-  const result = await Member.deleteOne({ email: email.toLowerCase() });
+  const result = await Member.deleteOne({ email: lowerEmail });
   if (result.deletedCount === 0) {
     return res.status(404).json({ error: "Member not found" });
   }
+
+  // Also delete from User collection if exists
+  await User.deleteOne({ email: lowerEmail });
+
+  // Free up seat if occupied by this member
+  await Seat.updateMany(
+    { occupiedByEmail: lowerEmail },
+    {
+      $set: {
+        status: "Available",
+        occupiedBy: "",
+        occupiedByEmail: "",
+        checkInTime: undefined,
+        assignedShift: undefined,
+        awaySince: undefined
+      }
+    }
+  );
 
   res.json({ message: "Member deleted successfully" });
 }));
