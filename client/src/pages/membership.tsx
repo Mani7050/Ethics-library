@@ -21,30 +21,7 @@ import {
 import { Search, Plus, MoreVertical, LayoutGrid, List, ChevronDown, Award, Gem, ShieldCheck, Eye, RefreshCw, Trash2 } from "lucide-react"
 
 export default function MembershipPage() {
-  const { subscriptions, assignMembership, toggleSubscriptionStatus, deleteSubscription, members, addToast } = useLibrary()
-
-  const DEFAULT_PLANS = [
-    { name: "General Library Access", price: "₹800", duration: "Monthly", type: "Standard", desc: "Access to common hall reading tables, high-speed Wi-Fi, and standard seating.", iconName: "Award", color: "border-zinc-200 dark:border-zinc-800" },
-    { name: "Premium Reading Desk", price: "₹1,500", duration: "Monthly", type: "Reserved", desc: "Assigned reserved reading desk, private study lamp, locker access, and personal socket.", iconName: "Gem", color: "border-primary/50 ring-1 ring-primary/20 bg-primary/5" },
-    { name: "VIP Quiet Cabin", price: "₹3,000", duration: "Monthly", type: "Private", desc: "Personal private partition cabin, noise cancellation chamber, ergonomic office chair.", iconName: "ShieldCheck", color: "border-zinc-200 dark:border-zinc-800" },
-  ]
-
-  const [plans, setPlans] = React.useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem("ethics_library_plans")
-      if (!saved) return DEFAULT_PLANS
-      const parsed = JSON.parse(saved)
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_PLANS
-    } catch {
-      return DEFAULT_PLANS
-    }
-  })
-
-  React.useEffect(() => {
-    try {
-      localStorage.setItem("ethics_library_plans", JSON.stringify(plans))
-    } catch {}
-  }, [plans])
+  const { subscriptions, assignMembership, toggleSubscriptionStatus, deleteSubscription, members, plans, createPlan, deletePlan } = useLibrary()
 
   const getIconComponent = (plan: any) => {
     if (plan?.iconName === "Gem" || (plan?.name && plan.name.includes("Premium"))) return Gem
@@ -60,27 +37,24 @@ export default function MembershipPage() {
   const [newPlanType, setNewPlanType] = React.useState("Standard")
   const [newPlanDesc, setNewPlanDesc] = React.useState("")
 
-  const handleCreatePlanSubmit = (e: React.FormEvent) => {
+  const handleCreatePlanSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newPlanName || !newPlanPrice) return
 
-    const formattedPrice = newPlanPrice.startsWith("₹") ? newPlanPrice : `₹${newPlanPrice}`
-    const newPlanObj = {
+    const success = await createPlan({
       name: newPlanName,
-      price: formattedPrice,
+      price: newPlanPrice,
       duration: newPlanDuration,
       type: newPlanType,
       desc: newPlanDesc || "Standard library subscription access.",
-      iconName: newPlanType === "Reserved" ? "Gem" : newPlanType === "Private" ? "ShieldCheck" : "Award",
-      color: "border-zinc-200 dark:border-zinc-800",
-    }
+    })
 
-    setPlans((prev) => [...prev, newPlanObj])
-    addToast?.(`New Membership Plan '${newPlanName}' created successfully!`, "success")
-    setNewPlanName("")
-    setNewPlanPrice("")
-    setNewPlanDesc("")
-    setIsCreatePlanOpen(false)
+    if (success) {
+      setNewPlanName("")
+      setNewPlanPrice("")
+      setNewPlanDesc("")
+      setIsCreatePlanOpen(false)
+    }
   }
 
   // New Subscription assignment states
@@ -96,9 +70,8 @@ export default function MembershipPage() {
   const [expandedEmails, setExpandedEmails] = React.useState<Record<string, boolean>>({})
   const [viewingSub, setViewingSub] = React.useState<any | null>(null)
 
-  const handleDeletePlan = (planName: string) => {
-    setPlans((prev) => prev.filter((p) => p.name !== planName))
-    addToast?.(`Plan tier '${planName}' removed.`, "info")
+  const handleDeletePlan = async (planIdOrName: string) => {
+    await deletePlan(planIdOrName)
   }
 
   const handleAssignMembershipSubmit = async (e: React.FormEvent) => {

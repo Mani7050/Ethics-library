@@ -81,6 +81,17 @@ export interface Subscription {
   color: string
 }
 
+export interface Plan {
+  id: string
+  name: string
+  price: string
+  duration: string
+  type: string
+  desc: string
+  iconName?: string
+  color?: string
+}
+
 export interface Toast {
   id: string
   message: string
@@ -94,6 +105,7 @@ interface LibraryContextType {
   transactions: Transaction[]
   expenses: Expense[]
   subscriptions: Subscription[]
+  plans: Plan[]
   toasts: Toast[]
   addToast: (message: string, type?: Toast["type"]) => void
   removeToast: (id: string) => void
@@ -113,6 +125,8 @@ interface LibraryContextType {
   assignMembership: (memberEmail: string, planName: string) => Promise<boolean>
   toggleSubscriptionStatus: (id: string) => Promise<void>
   deleteSubscription: (id: string) => Promise<void>
+  createPlan: (planData: { name: string; price: string; duration?: string; type?: string; desc?: string }) => Promise<boolean>
+  deletePlan: (idOrName: string) => Promise<boolean>
   addNewSeat: (category: Seat["category"], customSeatNumber?: number) => Promise<void>
   editOccupiedSeatTimings: (seatId: number, checkInTime: string, assignedShift: Seat["assignedShift"]) => Promise<void>
   renameCategory: (oldName: string, newName: string) => Promise<void>
@@ -153,6 +167,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   const transactions = useSelector((state: RootState) => state.library.transactions)
   const expenses = useSelector((state: RootState) => state.library.expenses)
   const subscriptions = useSelector((state: RootState) => state.library.subscriptions)
+  const plans = useSelector((state: RootState) => state.library.plans)
   const toasts = useSelector((state: RootState) => state.library.toasts)
 
   // Local helper functions to map state modifications to Redux dispatch actions
@@ -204,17 +219,26 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     }
   }, [dispatch])
 
+  const setPlans = React.useCallback((p: Plan[] | ((prev: Plan[]) => Plan[])) => {
+    if (typeof p === "function") {
+      dispatch(actions.setPlans(p(store.getState().library.plans)))
+    } else {
+      dispatch(actions.setPlans(p))
+    }
+  }, [dispatch])
+
   // Fetch initial data from Backend server
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [membersRes, seatsRes, logsRes, txsRes, expsRes, subsRes] = await Promise.all([
+        const [membersRes, seatsRes, logsRes, txsRes, expsRes, subsRes, plansRes] = await Promise.all([
           fetch(`${API_BASE_URL}/members`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
           fetch(`${API_BASE_URL}/seats`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
           fetch(`${API_BASE_URL}/attendance`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
           fetch(`${API_BASE_URL}/transactions`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
           fetch(`${API_BASE_URL}/expenses`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
           fetch(`${API_BASE_URL}/subscriptions`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
+          fetch(`${API_BASE_URL}/plans`).then((res) => { if (!res.ok) throw new Error(); return res.json(); }),
         ]);
 
         setMembers(membersRes);
@@ -223,6 +247,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         setTransactions(txsRes);
         setExpenses(expsRes);
         setSubscriptions(subsRes);
+        setPlans(plansRes);
       } catch (err) {
         console.warn("Backend not reachable, starting with empty data.", err);
         setMembers([]);
@@ -231,6 +256,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         setTransactions([]);
         setExpenses([]);
         setSubscriptions([]);
+        setPlans([]);
       }
     };
     fetchData();
@@ -561,6 +587,44 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const createPlan = async (planData: { name: string; price: string; duration?: string; type?: string; desc?: string }): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/plans`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(planData),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        addToast(data.error || "Failed to create plan", "error")
+        return false
+      }
+      const newPlan = await res.json()
+      setPlans((prev) => [...prev, newPlan])
+      addToast(`New Membership Plan '${newPlan.name}' created successfully!`, "success")
+      return true
+    } catch (err) {
+      addToast("Failed to create plan", "error")
+      return false
+    }
+  }
+
+  const deletePlan = async (idOrName: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/plans/${encodeURIComponent(idOrName)}`, {
+        method: "DELETE",
+      })
+      if (!res.ok) throw new Error()
+      setPlans((prev) => prev.filter((p) => p.id !== idOrName && p.name !== idOrName))
+      addToast(`Plan tier '${idOrName}' deleted.`, "info")
+      return true
+    } catch (err) {
+      setPlans((prev) => prev.filter((p) => p.name !== idOrName && p.id !== idOrName))
+      addToast(`Plan tier deleted.`, "info")
+      return false
+    }
+  }
+
   const addNewSeat = async (category: Seat["category"], customSeatNumber?: number) => {
     try {
       const res = await fetch(`${API_BASE_URL}/seats/add`, {
@@ -640,6 +704,7 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         transactions,
         expenses,
         subscriptions,
+        plans,
         toasts,
         addToast,
         removeToast,
@@ -659,6 +724,8 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
         assignMembership,
         toggleSubscriptionStatus,
         deleteSubscription,
+        createPlan,
+        deletePlan,
         addNewSeat,
         editOccupiedSeatTimings,
         renameCategory,

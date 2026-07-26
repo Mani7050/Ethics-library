@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { Member, Seat, AttendanceLog, Transaction, Expense, Subscription, Toast } from "../context/LibraryContext";
+import type { Member, Seat, AttendanceLog, Transaction, Expense, Subscription, Plan, Toast } from "../context/LibraryContext";
 
 interface LibraryState {
   members: Member[];
@@ -9,6 +9,7 @@ interface LibraryState {
   transactions: Transaction[];
   expenses: Expense[];
   subscriptions: Subscription[];
+  plans: Plan[];
   toasts: Toast[];
 }
 
@@ -19,6 +20,7 @@ const initialState: LibraryState = {
   transactions: [],
   expenses: [],
   subscriptions: [],
+  plans: [],
   toasts: [],
 };
 
@@ -43,6 +45,9 @@ const librarySlice = createSlice({
     },
     setSubscriptions(state, action: PayloadAction<Subscription[]>) {
       state.subscriptions = action.payload;
+    },
+    setPlans(state, action: PayloadAction<Plan[]>) {
+      state.plans = action.payload;
     },
     addToastAction(state, action: PayloadAction<Toast>) {
       state.toasts.push(action.payload);
@@ -93,6 +98,7 @@ export const {
   setTransactions,
   setExpenses,
   setSubscriptions,
+  setPlans,
   addToastAction,
   removeToastAction,
   addMemberAction,

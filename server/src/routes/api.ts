@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { Member } from "../models/Member";
@@ -8,6 +9,7 @@ import { Transaction } from "../models/Transaction";
 import { Expense } from "../models/Expense";
 import { Subscription } from "../models/Subscription";
 import { User } from "../models/User";
+import { Plan } from "../models/Plan";
 
 const router = Router();
 
@@ -131,10 +133,11 @@ router.post("/auth/register", asyncHandler(async (req: Request, res: Response) =
 
 // POST /auth/login
 router.post("/auth/login", asyncHandler(async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const emailInput = req.body.email || req.body.emailOrPhone;
+  const { password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+  if (!emailInput || !password) {
+    return res.status(400).json({ error: "Email or phone number and password are required" });
   }
 
   // Prevent bcrypt CPU exhaustion (Long Password DoS)
@@ -142,22 +145,46 @@ router.post("/auth/login", asyncHandler(async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Password cannot be longer than 72 characters" });
   }
 
-  if (email.length > 100) {
-    return res.status(400).json({ error: "Email cannot exceed 100 characters" });
+  const query = emailInput.trim().toLowerCase();
+
+  let user = await User.findOne({ email: query });
+  let memberDoc = null;
+  let isMatch = false;
+
+  if (user) {
+    isMatch = await bcrypt.compare(password, user.passwordHash);
+    memberDoc = await Member.findOne({ email: user.email.toLowerCase() });
+  } else {
+    // Check Member model
+    memberDoc = await Member.findOne({
+      $or: [
+        { email: query },
+        { phone: query },
+        { name: new RegExp(`^${query}$`, 'i') }
+      ]
+    });
+
+    if (memberDoc && (memberDoc as any).password) {
+      isMatch = await bcrypt.compare(password, (memberDoc as any).password);
+    }
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) {
-    return res.status(400).json({ error: "Invalid email or password" });
+  if (!user && !memberDoc) {
+    return res.status(400).json({ error: "No account found with this email/phone." });
   }
 
-  const isMatch = await bcrypt.compare(password, user.passwordHash);
   if (!isMatch) {
-    return res.status(400).json({ error: "Invalid email or password" });
+    return res.status(400).json({ error: "Invalid password. Please try again." });
   }
+
+  const activeMember: any = memberDoc;
+  const userId = user ? user._id : activeMember._id;
+  const userEmail = user ? user.email : activeMember.email;
+  const userName = user ? user.name : activeMember.name;
+  const userRole = user ? user.role : "member";
 
   const token = jwt.sign(
-    { userId: user._id, email: user.email, role: user.role },
+    { userId, email: userEmail, role: userRole },
     process.env.JWT_SECRET || "ethics_library_secret_key_12345",
     { expiresIn: "7d" }
   );
@@ -165,21 +192,21 @@ router.post("/auth/login", asyncHandler(async (req: Request, res: Response) => {
   // Update member lastLogin timestamp
   const loginOptions: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
   const formattedLogin = new Date().toLocaleDateString("en-US", loginOptions);
-  
-  const memberDoc = await Member.findOne({ email: user.email.toLowerCase() });
-  if (memberDoc) {
-    memberDoc.lastLogin = formattedLogin;
-    await memberDoc.save();
+
+  if (activeMember) {
+    activeMember.lastLogin = formattedLogin;
+    await activeMember.save();
   }
+
+  const userObject: any = activeMember
+    ? (activeMember.toObject ? activeMember.toObject() : activeMember)
+    : { id: userId, name: userName, email: userEmail, role: userRole };
+
+  if (userObject.password) delete userObject.password;
 
   res.json({
     token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    }
+    user: userObject
   });
 }));
 
@@ -193,14 +220,51 @@ router.get("/auth/me", asyncHandler(async (req: Request, res: Response) => {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "ethics_library_secret_key_12345") as any;
-    const user = await User.findById(decoded.userId).select("-passwordHash");
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const targetId = decoded.userId || decoded.id;
+
+    let foundUser: any = null;
+
+    if (targetId && mongoose.Types.ObjectId.isValid(targetId)) {
+      foundUser = await Member.findById(targetId);
+      if (!foundUser) {
+        foundUser = await User.findById(targetId).select("-passwordHash");
+      }
     }
-    res.json(user);
+
+    if (!foundUser && decoded.email) {
+      foundUser = await Member.findOne({ email: decoded.email.toLowerCase() });
+      if (!foundUser) {
+        foundUser = await User.findOne({ email: decoded.email.toLowerCase() }).select("-passwordHash");
+      }
+    }
+
+    if (!foundUser) {
+      return res.status(404).json({ error: "User account not found or deleted" });
+    }
+
+    const userObj = foundUser.toObject ? foundUser.toObject() : { ...foundUser };
+    delete userObj.password;
+    delete userObj.passwordHash;
+
+    res.json({ user: userObj });
   } catch (err) {
     return res.status(401).json({ error: "Invalid token" });
   }
+}));
+
+const DEFAULT_PLANS = [
+  { id: "plan-1", name: "General Library Access", price: "₹800", duration: "Monthly", type: "Standard", desc: "Access to common hall reading tables, high-speed Wi-Fi, and standard seating.", iconName: "Award", color: "border-zinc-200 dark:border-zinc-800" },
+  { id: "plan-2", name: "Premium Reading Desk", price: "₹1,500", duration: "Monthly", type: "Reserved", desc: "Assigned reserved reading desk, private study lamp, locker access, and personal socket.", iconName: "Gem", color: "border-primary/50 ring-1 ring-primary/20 bg-primary/5" },
+  { id: "plan-3", name: "VIP Quiet Cabin", price: "₹3,000", duration: "Monthly", type: "Private", desc: "Personal private partition cabin, noise cancellation chamber, ergonomic office chair.", iconName: "ShieldCheck", color: "border-zinc-200 dark:border-zinc-800" },
+];
+
+// GET /plans (Publicly accessible to fetch configured membership tiers)
+router.get("/plans", asyncHandler(async (req: Request, res: Response) => {
+  let plans = await Plan.find().sort({ createdAt: 1 });
+  if (plans.length === 0) {
+    plans = await Plan.insertMany(DEFAULT_PLANS) as any;
+  }
+  res.json(plans);
 }));
 
 // Protect all routes below with JWT authorization
@@ -1010,6 +1074,53 @@ router.delete("/subscriptions/:id", asyncHandler(async (req: Request, res: Respo
   }
 
   res.json({ message: "Subscription deleted successfully" });
+}));
+
+
+// ==========================================
+// 7. PLAN ROUTES (Membership Tiers)
+// ==========================================
+
+// POST /plans
+router.post("/plans", asyncHandler(async (req: Request, res: Response) => {
+  const { name, price, duration, type, desc, iconName, color } = req.body;
+
+  if (!name || !price) {
+    return res.status(400).json({ error: "Plan title and price are required" });
+  }
+
+  const existing = await Plan.findOne({ name });
+  if (existing) {
+    return res.status(400).json({ error: `Plan '${name}' already exists` });
+  }
+
+  const formattedPrice = price.startsWith("₹") ? price : `₹${price}`;
+
+  const newPlan = new Plan({
+    id: `plan-${Date.now()}`,
+    name,
+    price: formattedPrice,
+    duration: duration || "Monthly",
+    type: type || "Standard",
+    desc: desc || "Standard library subscription access.",
+    iconName: iconName || (type === "Reserved" ? "Gem" : type === "Private" ? "ShieldCheck" : "Award"),
+    color: color || "border-zinc-200 dark:border-zinc-800",
+  });
+
+  await newPlan.save();
+  res.status(201).json(newPlan);
+}));
+
+// DELETE /plans/:id (or by plan name)
+router.delete("/plans/:id", asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await Plan.deleteOne({ $or: [{ id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { name: id }] });
+  if (result.deletedCount === 0) {
+    return res.status(404).json({ error: "Plan not found" });
+  }
+
+  res.json({ message: "Plan deleted successfully" });
 }));
 
 export default router;
