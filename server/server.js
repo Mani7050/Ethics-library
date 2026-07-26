@@ -147,7 +147,7 @@ app.post('/api/auth/login', async (req, res) => {
     );
 
     // Update lastLogin timestamp
-    const loginOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const loginOptions = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
     const formattedLastLogin = new Date().toLocaleDateString("en-US", loginOptions);
 
     if (mongoose.connection.readyState === 1 && foundUser._id) {
@@ -177,12 +177,12 @@ app.post('/api/auth/signup', async (req, res) => {
     const query = emailOrPhone.trim().toLowerCase();
     const isEmail = emailOrPhone.includes('@');
     const userEmail = isEmail ? query : `${fullName.toLowerCase().replace(/\s+/g, '')}@ethicslibrary.com`;
-    const userPhone = isEmail ? '+91 98765 43210' : query;
+    const userPhone = isEmail ? '-' : query;
 
     // 1. Check if user already exists in DB
     if (mongoose.connection.readyState === 1) {
       const existingDbUser = await Member.findOne({
-        $or: [{ email: userEmail }, { phone: userPhone }]
+        $or: [{ email: userEmail }, ...(userPhone !== '-' ? [{ phone: userPhone }] : [])]
       });
       if (existingDbUser) {
         return res.status(400).json({ error: 'An account with this email/phone already exists. Please log in.' });
@@ -194,7 +194,7 @@ app.post('/api/auth/signup', async (req, res) => {
     const numId = Math.floor(1000 + Math.random() * 9000);
     const membershipId = `ETH-2026-${numId}`;
 
-    const options = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const options = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
     const formattedJoined = new Date().toLocaleDateString("en-US", options);
     const initialVal = fullName.trim().split(" ").map(n => n.charAt(0)).join("").toUpperCase() || "U";
     const colors = [
