@@ -162,6 +162,16 @@ router.post("/auth/login", asyncHandler(async (req: Request, res: Response) => {
     { expiresIn: "7d" }
   );
 
+  // Update member lastLogin timestamp
+  const loginOptions: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+  const formattedLogin = new Date().toLocaleDateString("en-US", loginOptions);
+  
+  const memberDoc = await Member.findOne({ email: user.email.toLowerCase() });
+  if (memberDoc) {
+    memberDoc.lastLogin = formattedLogin;
+    await memberDoc.save();
+  }
+
   res.json({
     token,
     user: {
@@ -237,6 +247,9 @@ router.get("/members", asyncHandler(async (req: Request, res: Response) => {
       }
     }
 
+    // Determine if registered via App signup vs Dashboard
+    const sourceBy = (obj.by === "App" || obj.by === "App Signup") ? "App" : "Dashboard";
+
     return {
       ...obj,
       name,
@@ -244,7 +257,7 @@ router.get("/members", asyncHandler(async (req: Request, res: Response) => {
       phone: obj.phone || "-",
       address: obj.address || "-",
       joined: actualJoined || new Date().toLocaleDateString("en-US", dateOptions),
-      by: obj.by || (user ? "App Signup" : "Dashboard"),
+      by: sourceBy,
       status: obj.status || "Active",
       initial: obj.initial || (name ? name.split(" ").map((n: string) => n.charAt(0)).join("").toUpperCase() : "U"),
       color: obj.color || colors[idx % colors.length],
@@ -293,7 +306,7 @@ router.post("/members", asyncHandler(async (req: Request, res: Response) => {
     address: address || "-",
     joined: formattedDate,
     lastLogin: "N/A",
-    by: "App",
+    by: req.body.by || "Dashboard",
     status: "Active",
     initial: initialVal || "U",
     color: randomColor,

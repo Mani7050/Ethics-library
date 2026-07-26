@@ -232,6 +232,7 @@ export default function MembersPage() {
                   <th className="p-4">Phone</th>
                   <th className="p-4">Address</th>
                   <th className="p-4">Joined</th>
+                  <th className="p-4">Last Login</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 w-[100px] text-right">Actions</th>
                 </tr>
@@ -251,6 +252,11 @@ export default function MembersPage() {
                     <td className="p-4 text-muted-foreground font-medium">{member.phone}</td>
                     <td className="p-4 text-muted-foreground font-medium">{member.address}</td>
                     <td className="p-4 text-muted-foreground font-medium">{member.joined}</td>
+                    <td className="p-4 text-muted-foreground font-medium">
+                      <span className="bg-muted/50 text-zinc-800 dark:text-zinc-200 font-semibold px-2 py-0.5 rounded text-[11px]">
+                        {member.lastLogin || "N/A"}
+                      </span>
+                    </td>
                     <td className="p-4">
                       {/* CSS Toggle Switch */}
                       <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -426,9 +432,6 @@ export default function MembersPage() {
                       {member.name}
                     </h3>
                     <div className="flex items-center gap-1.5">
-                      {member.by === "App" ? (
-                        <span className="bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 px-1.5 py-0.2 rounded text-[9px] font-bold">App</span>
-                      ) : null}
                       <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.2 text-[9px] font-bold ${
                         member.status === "Active" 
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" 
@@ -488,9 +491,9 @@ export default function MembersPage() {
 
               {/* Dates & Status Toggle */}
               <div className="flex items-center justify-between text-[11px] pt-1">
-                <div className="space-y-0.5">
-                  <div className="text-muted-foreground text-[10px] font-medium">Joined</div>
-                  <div className="font-bold text-zinc-700 dark:text-zinc-300">{member.joined}</div>
+                <div className="space-y-0.5 text-left">
+                  <div className="text-muted-foreground text-[10px] font-medium">Joined: <span className="font-bold text-zinc-700 dark:text-zinc-300">{member.joined}</span></div>
+                  <div className="text-muted-foreground text-[10px] font-medium">Last Login: <span className="font-bold text-purple-600 dark:text-purple-400">{member.lastLogin || "N/A"}</span></div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-[10px] text-muted-foreground font-medium">Status Toggle</span>
