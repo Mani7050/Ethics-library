@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const Member = require('./models/Member');
+const Plan = require('./models/Plan');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -368,6 +369,25 @@ app.get('/api/attendance', (req, res) => {
 // Notices Route
 app.get('/api/notices', (req, res) => {
   res.json(mockNotices);
+});
+
+// Plans Route (Fetches configured membership tiers from MongoDB Atlas "plans" collection)
+app.get('/api/plans', async (req, res) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const plans = await Plan.find().sort({ createdAt: 1 });
+      if (plans.length > 0) {
+        return res.json(plans);
+      }
+    }
+    res.json([
+      { id: "plan-1", name: "General Library Access", price: "₹800", duration: "Monthly", type: "Standard", desc: "Access to common hall reading tables, high-speed Wi-Fi, and standard seating.", iconName: "Award" },
+      { id: "plan-2", name: "Premium Reading Desk", price: "₹1,500", duration: "Monthly", type: "Reserved", desc: "Assigned reserved reading desk, private study lamp, locker access, and personal socket.", iconName: "Gem" },
+      { id: "plan-3", name: "VIP Quiet Cabin", price: "₹3,000", duration: "Monthly", type: "Private", desc: "Personal private partition cabin, noise cancellation chamber, ergonomic office chair.", iconName: "ShieldCheck" },
+    ]);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch plans" });
+  }
 });
 
 // Start Server

@@ -13,6 +13,7 @@ import {
   Lock,
   Timer,
   QrCode,
+  CreditCard,
   LifeBuoy
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -83,7 +84,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Access Shortcuts */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <Link
           to="/seat"
           className="p-3 rounded-lg border border-border bg-card hover:border-amber-500/40 transition-all flex items-center gap-2.5 group shadow-2xs"
@@ -98,6 +99,19 @@ export const Dashboard: React.FC = () => {
         </Link>
 
         <Link
+          to="/membership"
+          className="p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/50 transition-all flex items-center gap-2.5 group shadow-2xs"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-500 text-slate-950 shrink-0">
+            <CreditCard className="h-4 w-4" />
+          </div>
+          <div className="overflow-hidden">
+            <div className="text-xs font-bold text-foreground truncate">Plans & Membership</div>
+            <div className="text-[10px] text-amber-600 dark:text-amber-400 font-bold truncate">View & Upgrade</div>
+          </div>
+        </Link>
+
+        <Link
           to="/focus"
           className="p-3 rounded-lg border border-border bg-card hover:border-amber-500/40 transition-all flex items-center gap-2.5 group shadow-2xs"
         >
@@ -106,7 +120,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="overflow-hidden">
             <div className="text-xs font-bold text-foreground truncate">Focus Timer</div>
-            <div className="text-[10px] text-muted-foreground truncate">Rain & Ambient Audio</div>
+            <div className="text-[10px] text-muted-foreground truncate">Rain & Audio</div>
           </div>
         </Link>
 
@@ -119,7 +133,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="overflow-hidden">
             <div className="text-xs font-bold text-foreground truncate">Attendance</div>
-            <div className="text-[10px] text-muted-foreground truncate">Gate logs & streaks</div>
+            <div className="text-[10px] text-muted-foreground truncate">Gate logs</div>
           </div>
         </Link>
       </div>
