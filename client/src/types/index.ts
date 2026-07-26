@@ -18,6 +18,9 @@ export interface MemberProfile {
   planDaysLeft?: number;
   joinedDate?: string;
   status?: 'active' | 'expiring_soon' | 'expired';
+  targetExam?: string;
+  dailyTargetHours?: string;
+  emergencyContact?: string;
 }
 
 export type UserProfile = MemberProfile;

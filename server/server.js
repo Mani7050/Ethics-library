@@ -13,7 +13,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ethics_library_secret_key_12345';
 const MONGODB_URI = process.env.MONGODB_URI;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 let isDbConnected = false;
 
@@ -274,7 +275,7 @@ app.get('/api/user/profile', async (req, res) => {
 app.put('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     const userId = req.userPayload ? req.userPayload.id : null;
-    const { name, email, phone, avatar, targetExam, dailyTargetHours, emergencyContact } = req.body;
+    const { name, phone, avatar, targetExam, dailyTargetHours, emergencyContact } = req.body;
 
     let updatedUser = null;
 
@@ -284,7 +285,6 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
         {
           $set: {
             ...(name && { name }),
-            ...(email && { email }),
             ...(phone && { phone }),
             ...(avatar && { avatar }),
             ...(targetExam && { targetExam }),
@@ -300,7 +300,6 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
       const idx = inMemoryUsers.findIndex((u) => u._id === userId || u.id === userId);
       if (idx !== -1) {
         if (name) inMemoryUsers[idx].name = name;
-        if (email) inMemoryUsers[idx].email = email;
         if (phone) inMemoryUsers[idx].phone = phone;
         if (avatar) inMemoryUsers[idx].avatar = avatar;
         if (targetExam) inMemoryUsers[idx].targetExam = targetExam;
@@ -308,7 +307,7 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
         if (emergencyContact) inMemoryUsers[idx].emergencyContact = emergencyContact;
         updatedUser = inMemoryUsers[idx];
       } else {
-        updatedUser = { ...inMemoryUsers[0], name, email, phone, targetExam, dailyTargetHours, emergencyContact };
+        updatedUser = { ...inMemoryUsers[0], ...(name && { name }), ...(avatar && { avatar }), ...(phone && { phone }), ...(targetExam && { targetExam }), ...(dailyTargetHours && { dailyTargetHours }), ...(emergencyContact && { emergencyContact }) };
       }
     }
 

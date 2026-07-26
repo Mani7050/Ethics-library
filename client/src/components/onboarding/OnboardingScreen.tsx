@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, BookOpen } from 'lucide-react';
 import slide1 from '../../assets/slide1.png';
 import slide2 from '../../assets/slide2.png';
 import slide3 from '../../assets/slide3.png';
@@ -59,8 +59,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
         {/* Top Header Bar with Step Pill Indicator */}
         <div className="relative z-20 flex items-center justify-between p-4 pt-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-extrabold text-[11px] shadow-md">
-              E
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-slate-950 shadow-md">
+              <BookOpen className="h-4 w-4 text-slate-950 stroke-[2.5]" />
             </div>
             <span className="text-[11px] font-extrabold tracking-wider uppercase text-white shadow-sm">
               ETHICS

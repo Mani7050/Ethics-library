@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMember } from '../../context/MemberContext';
-import { Sun, Moon, Bell, ShieldCheck, QrCode } from 'lucide-react';
+import { Sun, Moon, Bell, ShieldCheck, QrCode, BookOpen } from 'lucide-react';
 import { DigitalIdModal } from '../modals/DigitalIdModal';
 import { NoticesDrawer } from '../modals/NoticesDrawer';
 
@@ -15,8 +15,8 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-2">
           {/* Mobile Brand */}
           <div className="flex items-center gap-2 md:hidden">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-black text-xs shadow-2xs">
-              E
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500 text-slate-950 shadow-2xs">
+              <BookOpen className="h-4 w-4 text-slate-950 stroke-[2.5]" />
             </div>
             <div>
               <h1 className="text-xs font-black tracking-tight text-foreground leading-none">ETHICS</h1>

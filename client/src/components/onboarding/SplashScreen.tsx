@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BookOpen } from 'lucide-react';
 
 interface SplashScreenProps {
   onFinish: () => void;
@@ -31,14 +32,9 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
       <div className="flex flex-col items-center justify-center text-center my-auto">
         {/* Outer White Square Logo Card */}
         <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-2xl bg-white shadow-2xl p-3 border border-white/40 transform hover:scale-105 transition-transform">
-          {/* Inner Primary Amber Emblem */}
-          <div className="h-full w-full rounded-xl bg-amber-500 flex flex-col items-center justify-center shadow-sm">
-            <span className="font-black text-3xl sm:text-4xl text-slate-950 leading-none tracking-tighter">
-              E
-            </span>
-            <span className="text-[7px] font-black text-slate-950/90 tracking-widest leading-none mt-1">
-              ETHICS
-            </span>
+          {/* Inner Primary Emblem with Golden Open Book Icon */}
+          <div className="h-full w-full rounded-xl bg-slate-950 flex items-center justify-center shadow-sm p-2">
+            <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-amber-500 stroke-[2.5]" />
           </div>
         </div>
 

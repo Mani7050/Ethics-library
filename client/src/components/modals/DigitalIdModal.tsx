@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMember } from '../../context/MemberContext';
-import { QrCode, ShieldCheck, X, Printer, CheckCircle } from 'lucide-react';
+import { QrCode, ShieldCheck, X, Printer, CheckCircle, BookOpen } from 'lucide-react';
 
 interface DigitalIdModalProps {
   isOpen: boolean;
@@ -25,8 +25,8 @@ export const DigitalIdModal: React.FC<DigitalIdModalProps> = ({ isOpen, onClose 
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-border/80 pb-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-black text-base shadow-2xs">
-              M
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-slate-950 shadow-2xs">
+              <BookOpen className="h-5 w-5 text-slate-950 stroke-[2.5]" />
             </div>
             <div>
               <h3 className="text-xs font-black tracking-tight text-foreground leading-none">ETHICS LIBRARY</h3>

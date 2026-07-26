@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMember } from '../context/MemberContext';
 import { API_BASE_URL } from '../config/api';
 import {
@@ -35,6 +35,7 @@ import {
   AlertCircle,
   Eye,
   Trash2,
+  X,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DigitalIdModal } from '../components/modals/DigitalIdModal';
@@ -42,6 +43,7 @@ import { DigitalIdModal } from '../components/modals/DigitalIdModal';
 export const Profile: React.FC = () => {
   const { user, isDarkMode, toggleDarkMode, updateUserProfile, logout } = useMember();
   const [showIdModal, setShowIdModal] = useState<boolean>(false);
+  const [showPhotoModal, setShowPhotoModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'documents' | 'membership' | 'security' | 'support'>('profile');
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [savedSuccess, setSavedSuccess] = useState<boolean>(false);
@@ -57,10 +59,45 @@ export const Profile: React.FC = () => {
     name: user.name || 'Mani Kumar',
     email: user.email || 'mani@gmail.com',
     phone: user.phone || '+91 98765 43210',
-    targetExam: 'UPSC Civil Services / BPSC',
-    dailyTargetHours: '8',
-    emergencyContact: '+91 98765 00000',
+    targetExam: user.targetExam || 'UPSC Civil Services / BPSC',
+    dailyTargetHours: user.dailyTargetHours || '8',
+    emergencyContact: user.emergencyContact || '+91 98765 00000',
   });
+
+  // Sync formData whenever user context changes
+  useEffect(() => {
+    setFormData({
+      name: user.name || 'Mani Kumar',
+      email: user.email || 'mani@gmail.com',
+      phone: user.phone || '+91 98765 43210',
+      targetExam: user.targetExam || 'UPSC Civil Services / BPSC',
+      dailyTargetHours: user.dailyTargetHours || '8',
+      emergencyContact: user.emergencyContact || '+91 98765 00000',
+    });
+  }, [user]);
+
+  // Fetch latest profile from backend on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const storedToken = localStorage.getItem('ethics_token') || sessionStorage.getItem('ethics_token');
+        if (!storedToken) return;
+
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${storedToken}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            updateUserProfile(data.user);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch updated user profile:', err);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   // KYC Documents State
   const [documents, setDocuments] = useState({
@@ -107,41 +144,34 @@ export const Profile: React.FC = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    const updatedFields = {
+      name: formData.name,
+      phone: formData.phone,
+      targetExam: formData.targetExam,
+      dailyTargetHours: formData.dailyTargetHours,
+      emergencyContact: formData.emergencyContact,
+    };
+
     try {
-      const storedToken = localStorage.getItem('ethics_token');
+      const storedToken = localStorage.getItem('ethics_token') || sessionStorage.getItem('ethics_token');
       const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          targetExam: formData.targetExam,
-          dailyTargetHours: formData.dailyTargetHours,
-          emergencyContact: formData.emergencyContact,
-        }),
+        body: JSON.stringify(updatedFields),
       });
 
       const data = await response.json();
       if (data.user) {
-        updateUserProfile(data.user);
+        updateUserProfile({ ...updatedFields, ...data.user });
       } else {
-        updateUserProfile({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        });
+        updateUserProfile(updatedFields);
       }
     } catch (err) {
       console.warn('API update failed, updating local state:', err);
-      updateUserProfile({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-      });
+      updateUserProfile(updatedFields);
     }
 
     setIsEditing(false);
@@ -184,23 +214,57 @@ export const Profile: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64Avatar = reader.result as string;
-      updateUserProfile({ avatar: base64Avatar });
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX_SIZE = 300;
+        let width = img.width;
+        let height = img.height;
 
-      try {
-        const storedToken = localStorage.getItem('ethics_token');
-        await fetch(`${API_BASE_URL}/api/user/profile`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
-          },
-          body: JSON.stringify({ avatar: base64Avatar }),
-        });
-      } catch (err) {
-        console.warn('Failed to persist avatar update to server:', err);
-      }
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const resizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+
+          // 1. Immediately update UI local & Redux state
+          updateUserProfile({ avatar: resizedBase64 });
+
+          // 2. Persist to Backend API
+          try {
+            const storedToken = localStorage.getItem('ethics_token') || sessionStorage.getItem('ethics_token');
+            const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
+              },
+              body: JSON.stringify({ avatar: resizedBase64 }),
+            });
+            const data = await response.json();
+            if (data.user) {
+              updateUserProfile(data.user);
+            }
+          } catch (err) {
+            console.warn('Failed to persist avatar update to server:', err);
+          }
+        }
+      };
+      img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
   };
@@ -214,22 +278,36 @@ export const Profile: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="relative group shrink-0">
               <img
-                src={user.avatar}
+                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop'}
                 alt={user.name}
-                className="h-20 w-20 rounded-2xl border border-border object-cover shadow-xs"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop';
+                }}
+                onClick={() => setShowPhotoModal(true)}
+                className="h-20 w-20 rounded-2xl border border-border object-cover shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                title="Click to view full profile photo"
               />
-              <label
-                className="absolute inset-0 bg-slate-950/60 rounded-2xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                title="Change Profile Picture"
-              >
-                <Camera className="h-5 w-5 text-white" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                  className="hidden"
-                />
-              </label>
+              <div className="absolute inset-0 bg-slate-950/60 rounded-2xl flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
+                <button
+                  onClick={() => setShowPhotoModal(true)}
+                  className="p-1.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-xs transition-colors cursor-pointer"
+                  title="View Full Photo"
+                >
+                  <Eye className="h-4 w-4 text-white" />
+                </button>
+                <label
+                  className="p-1.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-xs transition-colors cursor-pointer"
+                  title="Change Photo"
+                >
+                  <Camera className="h-4 w-4 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -424,15 +502,26 @@ export const Profile: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-1">Email Address</label>
+                <label className="block text-[10px] font-bold uppercase text-muted-foreground mb-1 flex items-center justify-between">
+                  <span>Email Address</span>
+                  {isEditing && (
+                    <span className="text-[10px] normal-case text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                      <Lock className="h-3 w-3" /> Non-editable
+                    </span>
+                  )}
+                </label>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground font-semibold focus:outline-none focus:border-amber-500"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={user.email || formData.email}
+                      disabled
+                      readOnly
+                      title="Email address cannot be modified"
+                      className="w-full px-3 py-2 pr-9 rounded-lg bg-accent/30 border border-border text-xs text-muted-foreground font-semibold cursor-not-allowed select-none opacity-75"
+                    />
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2" />
+                  </div>
                 ) : (
                   <div className="p-3 rounded-lg bg-accent/20 border border-border font-bold text-foreground flex items-center gap-2.5">
                     <Mail className="h-4 w-4 text-amber-500 shrink-0" /> {user.email}
@@ -936,6 +1025,67 @@ export const Profile: React.FC = () => {
 
       {/* Digital ID Pass Modal */}
       <DigitalIdModal isOpen={showIdModal} onClose={() => setShowIdModal(false)} />
+
+      {/* 🖼️ PROFILE PHOTO LIGHTBOX PREVIEW MODAL */}
+      {showPhotoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl space-y-4 text-center overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                <Eye className="h-4 w-4 text-amber-500" /> Profile Photo Preview
+              </h3>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-muted-foreground hover:text-foreground transition-colors cursor-pointer text-xs"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Full Photo View */}
+            <div className="relative flex justify-center py-2">
+              <img
+                src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop'}
+                alt={user.name}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop';
+                }}
+                className="max-h-72 w-auto max-w-full rounded-2xl border-2 border-amber-500/40 object-cover shadow-lg"
+              />
+            </div>
+
+            {/* Member Details */}
+            <div className="space-y-0.5">
+              <h4 className="text-base font-extrabold text-foreground">{user.name}</h4>
+              <p className="text-xs font-mono text-amber-600 dark:text-amber-400 font-bold">{user.membershipId}</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <label className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all cursor-pointer shadow-2xs flex items-center justify-center gap-1.5">
+                <Camera className="h-4 w-4" />
+                <span>Upload New Photo</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    handleAvatarChange(e);
+                    setShowPhotoModal(false);
+                  }}
+                  className="hidden"
+                />
+              </label>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="px-4 py-2.5 rounded-xl bg-accent border border-border text-xs font-bold text-foreground hover:bg-accent/80 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

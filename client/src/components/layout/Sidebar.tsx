@@ -11,7 +11,8 @@ import {
   User,
   Sparkles,
   QrCode,
-  LogOut
+  LogOut,
+  BookOpen
 } from 'lucide-react';
 import { DigitalIdModal } from '../modals/DigitalIdModal';
 
@@ -40,8 +41,8 @@ export const Sidebar: React.FC = () => {
       <aside className="hidden md:flex w-64 flex-col border-r border-border bg-sidebar text-sidebar-foreground min-h-screen sticky top-0 transition-colors">
         {/* Brand Header */}
         <div className="flex h-14 items-center px-5 border-b border-border gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-500 text-slate-950 font-black text-lg shadow-sm">
-            E
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-slate-950 shadow-sm">
+            <BookOpen className="h-5 w-5 text-slate-950 stroke-[2.5]" />
           </div>
           <div>
             <h2 className="text-base font-black tracking-tight text-foreground leading-none">ETHICS</h2>
