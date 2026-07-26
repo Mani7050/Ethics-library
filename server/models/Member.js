@@ -75,9 +75,34 @@ const memberSchema = new mongoose.Schema(
       type: String,
       default: () => new Date().toISOString().split('T')[0],
     },
+    joined: {
+      type: String,
+      default: () => new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+    },
+    lastLogin: {
+      type: String,
+      default: 'N/A',
+    },
+    by: {
+      type: String,
+      default: 'App',
+    },
+    initial: {
+      type: String,
+      default: 'U',
+    },
+    color: {
+      type: String,
+      default: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+    },
+    address: {
+      type: String,
+      default: '-',
+    },
   },
   {
     timestamps: true,
+    strict: false,
     collection: 'members', // Explicitly saves to 'members' collection in MongoDB Atlas!
   }
 );
