@@ -59,35 +59,11 @@ export const Signup: React.FC = () => {
       setIsLoading(false);
       navigate('/');
     } catch (err: any) {
-      console.warn('Backend server error or network issue during signup, using fallback:', err.message);
-      if (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
-        const isEmail = emailOrPhone.includes('@');
-        const numId = Math.floor(1000 + Math.random() * 9000);
-        const fallbackUser = {
-          id: `usr_${numId}`,
-          name: fullName,
-          email: isEmail ? emailOrPhone : `${fullName.toLowerCase().replace(/\s+/g, '')}@ethicslibrary.com`,
-          phone: isEmail ? '+91 98765 43210' : emailOrPhone,
-          membershipId: `ETH-2026-${numId}`,
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop',
-          planName: 'Prime Dedicated Bay (AC)',
-          validTill: '2026-12-31',
-          daysRemaining: 180,
-          currentSeat: 'B-04',
-          floor: 'First Floor (Silent Zone)',
-          shift: 'Full Day (07:00 AM - 11:00 PM)',
-          joinedDate: new Date().toISOString().split('T')[0],
-        };
-        const token = `jwt_token_signup_${Date.now()}`;
-        dispatch(setAuthSuccess({ token, user: fallbackUser, rememberMe: true }));
-        setIsLoading(false);
-        navigate('/');
-      } else {
-        const errorText = err.message || 'Signup failed. Please try again.';
-        setErrorMessage(errorText);
-        dispatch(setAuthFailure(errorText));
-        setIsLoading(false);
-      }
+      console.error('Signup error:', err.message);
+      const errorText = err.message || 'Signup failed. Please try again.';
+      setErrorMessage(errorText);
+      dispatch(setAuthFailure(errorText));
+      setIsLoading(false);
     }
   };
 

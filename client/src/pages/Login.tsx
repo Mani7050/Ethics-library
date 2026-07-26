@@ -48,34 +48,11 @@ export const Login: React.FC = () => {
       setIsLoading(false);
       navigate('/');
     } catch (err: any) {
-      console.warn('Backend server error or network issue during login, using fallback:', err.message);
-      // Fallback mechanism if API fails or server offline
-      if (err.message.includes('fetch') || err.message.includes('NetworkError') || err.message.includes('Failed to fetch')) {
-        const fallbackUser = {
-          id: 'usr_8842',
-          name: emailOrPhone.includes('@') ? emailOrPhone.split('@')[0] : 'Mani Kumar',
-          email: emailOrPhone.includes('@') ? emailOrPhone : 'mani@gmail.com',
-          phone: emailOrPhone.includes('@') ? '+91 98765 43210' : emailOrPhone,
-          membershipId: 'ETH-2026-8842',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop',
-          planName: 'Prime Dedicated Bay (AC)',
-          validTill: '2026-12-31',
-          daysRemaining: 158,
-          currentSeat: 'A-12',
-          floor: 'First Floor (Silent Zone)',
-          shift: 'Full Day (07:00 AM - 11:00 PM)',
-          joinedDate: '2026-01-15',
-        };
-        const token = `jwt_token_fallback_${Date.now()}`;
-        dispatch(setAuthSuccess({ token, user: fallbackUser, rememberMe }));
-        setIsLoading(false);
-        navigate('/');
-      } else {
-        const errorText = err.message || 'Login failed. Invalid credentials.';
-        setErrorMessage(errorText);
-        dispatch(setAuthFailure(errorText));
-        setIsLoading(false);
-      }
+      console.error('Login error:', err.message);
+      const errorText = err.message || 'Login failed. Invalid credentials.';
+      setErrorMessage(errorText);
+      dispatch(setAuthFailure(errorText));
+      setIsLoading(false);
     }
   };
 
