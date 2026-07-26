@@ -26,11 +26,12 @@ const navItems = [
 ];
 
 export const Sidebar: React.FC = () => {
-  const { user } = useMember();
+  const { user, logout } = useMember();
   const [showIdModal, setShowIdModal] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 

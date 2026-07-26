@@ -3,6 +3,10 @@ import { UserProfile, AttendanceRecord, SupportTicket, Announcement } from '../.
 
 interface MemberState {
   user: UserProfile;
+  token: string | null;
+  isAuthenticated: boolean;
+  authLoading: boolean;
+  authError: string | null;
   isDarkMode: boolean;
   isCheckedIn: boolean;
   checkInTime: string | null;
@@ -77,8 +81,23 @@ const initialAnnouncements: Announcement[] = [
   },
 ];
 
+const savedToken = localStorage.getItem('ethics_token') || sessionStorage.getItem('ethics_token');
+const savedUserRaw = localStorage.getItem('ethics_user') || sessionStorage.getItem('ethics_user');
+let savedUser: UserProfile = initialUser;
+if (savedUserRaw) {
+  try {
+    savedUser = JSON.parse(savedUserRaw);
+  } catch (e) {
+    // fallback
+  }
+}
+
 const initialState: MemberState = {
-  user: initialUser,
+  user: savedUser,
+  token: savedToken,
+  isAuthenticated: !!savedToken,
+  authLoading: false,
+  authError: null,
   isDarkMode: false,
   isCheckedIn: true,
   checkInTime: '10:39 PM',
@@ -91,6 +110,44 @@ export const memberSlice = createSlice({
   name: 'member',
   initialState,
   reducers: {
+    setAuthStart: (state) => {
+      state.authLoading = true;
+      state.authError = null;
+    },
+    setAuthSuccess: (
+      state,
+      action: PayloadAction<{ token: string; user: UserProfile; rememberMe?: boolean }>
+    ) => {
+      state.token = action.payload.token;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+      state.authLoading = false;
+      state.authError = null;
+
+      const storage = action.payload.rememberMe !== false ? localStorage : sessionStorage;
+      storage.setItem('ethics_token', action.payload.token);
+      storage.setItem('ethics_user', JSON.stringify(action.payload.user));
+    },
+    setAuthFailure: (state, action: PayloadAction<string>) => {
+      state.authLoading = false;
+      state.authError = action.payload;
+      state.isAuthenticated = false;
+    },
+    logoutUser: (state) => {
+      state.token = null;
+      state.user = initialUser;
+      state.isAuthenticated = false;
+      state.authLoading = false;
+      state.authError = null;
+
+      localStorage.removeItem('ethics_token');
+      localStorage.removeItem('ethics_user');
+      sessionStorage.removeItem('ethics_token');
+      sessionStorage.removeItem('ethics_user');
+    },
+    clearAuthError: (state) => {
+      state.authError = null;
+    },
     toggleDarkMode: (state) => {
       state.isDarkMode = !state.isDarkMode;
       if (state.isDarkMode) {
@@ -134,9 +191,13 @@ export const memberSlice = createSlice({
     updateUserSeat: (state, action: PayloadAction<{ seat: string; floor: string }>) => {
       state.user.currentSeat = action.payload.seat;
       state.user.floor = action.payload.floor;
+      const storage = localStorage.getItem('ethics_token') ? localStorage : sessionStorage;
+      storage.setItem('ethics_user', JSON.stringify(state.user));
     },
     updateUserProfile: (state, action: PayloadAction<Partial<UserProfile>>) => {
       state.user = { ...state.user, ...action.payload };
+      const storage = localStorage.getItem('ethics_token') ? localStorage : sessionStorage;
+      storage.setItem('ethics_user', JSON.stringify(state.user));
     },
     addTicket: (state, action: PayloadAction<Omit<SupportTicket, 'id' | 'createdAt' | 'status'>>) => {
       const newTicket: SupportTicket = {
@@ -152,5 +213,19 @@ export const memberSlice = createSlice({
   },
 });
 
-export const { toggleDarkMode, setDarkMode, toggleCheckIn, updateUserSeat, updateUserProfile, addTicket } = memberSlice.actions;
+export const {
+  setAuthStart,
+  setAuthSuccess,
+  setAuthFailure,
+  logoutUser,
+  clearAuthError,
+  toggleDarkMode,
+  setDarkMode,
+  toggleCheckIn,
+  updateUserSeat,
+  updateUserProfile,
+  addTicket,
+} = memberSlice.actions;
+
 export default memberSlice.reducer;
+

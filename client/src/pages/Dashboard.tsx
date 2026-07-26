@@ -83,7 +83,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Access Shortcuts */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Link
           to="/seat"
           className="p-3 rounded-lg border border-border bg-card hover:border-amber-500/40 transition-all flex items-center gap-2.5 group shadow-2xs"
@@ -106,7 +106,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="overflow-hidden">
             <div className="text-xs font-bold text-foreground truncate">Focus Timer</div>
-            <div className="text-[10px] text-muted-foreground truncate">Rain & Audio</div>
+            <div className="text-[10px] text-muted-foreground truncate">Rain & Ambient Audio</div>
           </div>
         </Link>
 
@@ -119,20 +119,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="overflow-hidden">
             <div className="text-xs font-bold text-foreground truncate">Attendance</div>
-            <div className="text-[10px] text-muted-foreground truncate">Streak log</div>
-          </div>
-        </Link>
-
-        <Link
-          to="/support"
-          className="p-3 rounded-lg border border-border bg-card hover:border-amber-500/40 transition-all flex items-center gap-2.5 group shadow-2xs"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
-            <LifeBuoy className="h-4 w-4" />
-          </div>
-          <div className="overflow-hidden">
-            <div className="text-xs font-bold text-foreground truncate">Support</div>
-            <div className="text-[10px] text-muted-foreground truncate">Helpdesk</div>
+            <div className="text-[10px] text-muted-foreground truncate">Gate logs & streaks</div>
           </div>
         </Link>
       </div>

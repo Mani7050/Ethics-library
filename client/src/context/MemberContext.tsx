@@ -7,11 +7,19 @@ import {
   updateUserSeat as updateUserSeatAction,
   updateUserProfile as updateUserProfileAction,
   addTicket as addTicketAction,
+  logoutUser as logoutUserAction,
+  clearAuthError as clearAuthErrorAction,
 } from '../store/slices/memberSlice';
 import { playSound } from '../utils/soundEngine';
 
 interface MemberContextType {
   user: UserProfile;
+  token: string | null;
+  isAuthenticated: boolean;
+  authLoading: boolean;
+  authError: string | null;
+  logout: () => void;
+  clearAuthError: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   isCheckedIn: boolean;
@@ -34,11 +42,30 @@ export const MemberProvider: React.FC<{ children: React.ReactNode; onReplayIntro
   onReplayIntro,
 }) => {
   const dispatch = useAppDispatch();
-  const { user, isDarkMode, isCheckedIn, checkInTime, attendanceLog, tickets, announcements } = useAppSelector(
-    (state) => state.member
-  );
+  const {
+    user,
+    token,
+    isAuthenticated,
+    authLoading,
+    authError,
+    isDarkMode,
+    isCheckedIn,
+    checkInTime,
+    attendanceLog,
+    tickets,
+    announcements,
+  } = useAppSelector((state) => state.member);
 
   const todayHours = 6.6;
+
+  const logout = () => {
+    playSound('click');
+    dispatch(logoutUserAction());
+  };
+
+  const clearAuthError = () => {
+    dispatch(clearAuthErrorAction());
+  };
 
   const toggleDarkMode = () => {
     playSound('click');
@@ -72,6 +99,12 @@ export const MemberProvider: React.FC<{ children: React.ReactNode; onReplayIntro
     <MemberContext.Provider
       value={{
         user,
+        token,
+        isAuthenticated,
+        authLoading,
+        authError,
+        logout,
+        clearAuthError,
         isDarkMode,
         toggleDarkMode,
         isCheckedIn,
@@ -99,3 +132,4 @@ export const useMember = () => {
   }
   return context;
 };
+

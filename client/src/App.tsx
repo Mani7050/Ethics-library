@@ -4,6 +4,7 @@ import { MemberProvider } from './context/MemberContext';
 import { SplashScreen } from './components/onboarding/SplashScreen';
 import { OnboardingScreen } from './components/onboarding/OnboardingScreen';
 import { AppLayout } from './components/layout/AppLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Dashboard } from './pages/Dashboard';
 import { MySeat } from './pages/MySeat';
 import { Attendance } from './pages/Attendance';
@@ -64,15 +65,20 @@ export const App: React.FC = () => {
             />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="seat" element={<MySeat />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="focus" element={<FocusTimer />} />
-              <Route path="membership" element={<Membership />} />
-              <Route path="support" element={<Support />} />
-              <Route path="profile" element={<Profile />} />
+
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="seat" element={<MySeat />} />
+                <Route path="attendance" element={<Attendance />} />
+                <Route path="focus" element={<FocusTimer />} />
+                <Route path="membership" element={<Membership />} />
+                <Route path="support" element={<Support />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
             </Route>
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
