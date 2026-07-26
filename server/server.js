@@ -288,8 +288,12 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
       foundUser = await Member.findById(userId);
     }
 
+    if (!foundUser && mongoose.connection.readyState !== 1) {
+      foundUser = inMemoryUsers.find((u) => u._id === userId || u.id === userId);
+    }
+
     if (!foundUser) {
-      foundUser = inMemoryUsers.find((u) => u._id === userId || u.id === userId) || inMemoryUsers[0];
+      return res.status(401).json({ error: 'User account has been deleted or does not exist.' });
     }
 
     res.json({ user: sanitizeUser(foundUser) });

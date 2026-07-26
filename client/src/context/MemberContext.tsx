@@ -1,5 +1,6 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import { UserProfile, AttendanceRecord, SupportTicket, Announcement } from '../types';
+import { API_BASE_URL } from '../config/api';
 import { useAppDispatch, useAppSelector } from '../store';
 import {
   toggleDarkMode as toggleDarkModeAction,
@@ -55,6 +56,25 @@ export const MemberProvider: React.FC<{ children: React.ReactNode; onReplayIntro
     tickets,
     announcements,
   } = useAppSelector((state) => state.member);
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_BASE_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          // User was deleted or session is invalid -> Logout automatically
+          dispatch(logoutUserAction());
+        } else {
+          const data = await res.json();
+          if (data?.user) {
+            dispatch(updateUserProfileAction(data.user));
+          }
+        }
+      })
+      .catch(() => {});
+  }, [token, dispatch]);
 
   const todayHours = 6.6;
 
