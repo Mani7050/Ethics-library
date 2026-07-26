@@ -250,6 +250,13 @@ router.get("/members", asyncHandler(async (req: Request, res: Response) => {
     // Determine if registered via App signup vs Dashboard
     const sourceBy = (obj.by === "App" || obj.by === "App Signup") ? "App" : "Dashboard";
 
+    // Determine real last login timestamp
+    let realLastLogin = obj.lastLogin;
+    if (!realLastLogin || realLastLogin === "N/A") {
+      const updatedAtVal = (obj as any).updatedAt;
+      realLastLogin = actualJoined || (updatedAtVal ? new Date(updatedAtVal).toLocaleDateString("en-US", dateOptions) : "N/A");
+    }
+
     return {
       ...obj,
       name,
@@ -257,6 +264,7 @@ router.get("/members", asyncHandler(async (req: Request, res: Response) => {
       phone: obj.phone || "-",
       address: obj.address || "-",
       joined: actualJoined || new Date().toLocaleDateString("en-US", dateOptions),
+      lastLogin: realLastLogin,
       by: sourceBy,
       status: obj.status || "Active",
       initial: obj.initial || (name ? name.split(" ").map((n: string) => n.charAt(0)).join("").toUpperCase() : "U"),
