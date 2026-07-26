@@ -59,6 +59,18 @@ const memberSchema = new mongoose.Schema(
       type: String,
       default: 'Active',
     },
+    targetExam: {
+      type: String,
+      default: 'UPSC Civil Services 2026',
+    },
+    dailyTargetHours: {
+      type: String,
+      default: '10',
+    },
+    emergencyContact: {
+      type: String,
+      default: '+91 98765 00000',
+    },
     joinedDate: {
       type: String,
       default: () => new Date().toISOString().split('T')[0],

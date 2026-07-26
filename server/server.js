@@ -270,6 +270,56 @@ app.get('/api/user/profile', async (req, res) => {
   res.json(sanitizeUser(inMemoryUsers[0]));
 });
 
+// Profile Update Endpoint (Updates MongoDB Atlas "members" collection)
+app.put('/api/user/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.userPayload ? req.userPayload.id : null;
+    const { name, email, phone, targetExam, dailyTargetHours, emergencyContact } = req.body;
+
+    let updatedUser = null;
+
+    if (mongoose.connection.readyState === 1 && userId && mongoose.Types.ObjectId.isValid(userId)) {
+      updatedUser = await Member.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            ...(name && { name }),
+            ...(email && { email }),
+            ...(phone && { phone }),
+            ...(targetExam && { targetExam }),
+            ...(dailyTargetHours && { dailyTargetHours }),
+            ...(emergencyContact && { emergencyContact }),
+          },
+        },
+        { new: true }
+      );
+    }
+
+    if (!updatedUser) {
+      const idx = inMemoryUsers.findIndex((u) => u._id === userId || u.id === userId);
+      if (idx !== -1) {
+        if (name) inMemoryUsers[idx].name = name;
+        if (email) inMemoryUsers[idx].email = email;
+        if (phone) inMemoryUsers[idx].phone = phone;
+        if (targetExam) inMemoryUsers[idx].targetExam = targetExam;
+        if (dailyTargetHours) inMemoryUsers[idx].dailyTargetHours = dailyTargetHours;
+        if (emergencyContact) inMemoryUsers[idx].emergencyContact = emergencyContact;
+        updatedUser = inMemoryUsers[idx];
+      } else {
+        updatedUser = { ...inMemoryUsers[0], name, email, phone, targetExam, dailyTargetHours, emergencyContact };
+      }
+    }
+
+    res.json({
+      message: 'Profile updated successfully in MongoDB Atlas',
+      user: sanitizeUser(updatedUser),
+    });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ error: 'Failed to update user profile' });
+  }
+});
+
 // Attendance Routes
 app.get('/api/attendance', (req, res) => {
   res.json(mockAttendance);

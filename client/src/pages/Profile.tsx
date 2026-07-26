@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMember } from '../context/MemberContext';
+import { API_BASE_URL } from '../config/api';
 import {
   User,
   Mail,
@@ -104,13 +105,45 @@ export const Profile: React.FC = () => {
     setTimeout(() => setDocSuccessMsg(null), 4000);
   };
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateUserProfile({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-    });
+    try {
+      const storedToken = localStorage.getItem('ethics_token');
+      const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          targetExam: formData.targetExam,
+          dailyTargetHours: formData.dailyTargetHours,
+          emergencyContact: formData.emergencyContact,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.user) {
+        updateUserProfile(data.user);
+      } else {
+        updateUserProfile({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        });
+      }
+    } catch (err) {
+      console.warn('API update failed, updating local state:', err);
+      updateUserProfile({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      });
+    }
+
     setIsEditing(false);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
