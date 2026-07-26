@@ -94,7 +94,7 @@ router.post("/auth/register", asyncHandler(async (req: Request, res: Response) =
     const membersCount = await Member.countDocuments();
     const randomColor = colors[membersCount % colors.length];
 
-    const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const options: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
     const formattedDate = new Date().toLocaleDateString("en-US", options);
 
     const newMember = new Member({
@@ -163,7 +163,7 @@ router.post("/auth/login", asyncHandler(async (req: Request, res: Response) => {
   );
 
   // Update member lastLogin timestamp
-  const loginOptions: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+  const loginOptions: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
   const formattedLogin = new Date().toLocaleDateString("en-US", loginOptions);
   
   const memberDoc = await Member.findOne({ email: user.email.toLowerCase() });
@@ -216,6 +216,7 @@ router.get("/members", asyncHandler(async (req: Request, res: Response) => {
   const members = await Member.find().sort({ joined: -1 });
 
   const dateOptions: Intl.DateTimeFormatOptions = { 
+    timeZone: "Asia/Kolkata",
     month: "short", 
     day: "numeric", 
     year: "numeric", 
@@ -304,7 +305,7 @@ router.post("/members", asyncHandler(async (req: Request, res: Response) => {
   const membersCount = await Member.countDocuments();
   const randomColor = colors[membersCount % colors.length];
 
-  const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+  const options: Intl.DateTimeFormatOptions = { timeZone: "Asia/Kolkata", month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
   const formattedDate = new Date().toLocaleDateString("en-US", options);
 
   const newMember = new Member({
