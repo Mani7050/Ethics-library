@@ -179,6 +179,32 @@ export const Profile: React.FC = () => {
     navigate('/login');
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Avatar = reader.result as string;
+      updateUserProfile({ avatar: base64Avatar });
+
+      try {
+        const storedToken = localStorage.getItem('ethics_token');
+        await fetch(`${API_BASE_URL}/api/user/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(storedToken && { Authorization: `Bearer ${storedToken}` }),
+          },
+          body: JSON.stringify({ avatar: base64Avatar }),
+        });
+      } catch (err) {
+        console.warn('Failed to persist avatar update to server:', err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
       {/* ⚪ CLEAN MINIMALIST MEMBER HEADER CARD */}
@@ -192,12 +218,18 @@ export const Profile: React.FC = () => {
                 alt={user.name}
                 className="h-20 w-20 rounded-2xl border border-border object-cover shadow-xs"
               />
-              <button
+              <label
                 className="absolute inset-0 bg-slate-950/60 rounded-2xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                title="Change Avatar"
+                title="Change Profile Picture"
               >
                 <Camera className="h-5 w-5 text-white" />
-              </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+              </label>
             </div>
 
             <div className="space-y-1">

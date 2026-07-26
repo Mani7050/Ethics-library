@@ -274,7 +274,7 @@ app.get('/api/user/profile', async (req, res) => {
 app.put('/api/user/profile', authenticateToken, async (req, res) => {
   try {
     const userId = req.userPayload ? req.userPayload.id : null;
-    const { name, email, phone, targetExam, dailyTargetHours, emergencyContact } = req.body;
+    const { name, email, phone, avatar, targetExam, dailyTargetHours, emergencyContact } = req.body;
 
     let updatedUser = null;
 
@@ -286,6 +286,7 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
             ...(name && { name }),
             ...(email && { email }),
             ...(phone && { phone }),
+            ...(avatar && { avatar }),
             ...(targetExam && { targetExam }),
             ...(dailyTargetHours && { dailyTargetHours }),
             ...(emergencyContact && { emergencyContact }),
@@ -301,6 +302,7 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
         if (name) inMemoryUsers[idx].name = name;
         if (email) inMemoryUsers[idx].email = email;
         if (phone) inMemoryUsers[idx].phone = phone;
+        if (avatar) inMemoryUsers[idx].avatar = avatar;
         if (targetExam) inMemoryUsers[idx].targetExam = targetExam;
         if (dailyTargetHours) inMemoryUsers[idx].dailyTargetHours = dailyTargetHours;
         if (emergencyContact) inMemoryUsers[idx].emergencyContact = emergencyContact;
