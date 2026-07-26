@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../store';
 import { setAuthStart, setAuthSuccess, setAuthFailure } from '../store/slices/memberSlice';
 
+import { API_BASE_URL } from '../config/api';
+
 export const Signup: React.FC = () => {
   const [fullName, setFullName] = useState<string>('');
   const [emailOrPhone, setEmailOrPhone] = useState<string>('');
@@ -35,7 +37,7 @@ export const Signup: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fullName, emailOrPhone, password }),
