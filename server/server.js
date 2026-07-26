@@ -146,6 +146,15 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // Update lastLogin timestamp
+    const loginOptions = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const formattedLastLogin = new Date().toLocaleDateString("en-US", loginOptions);
+
+    if (mongoose.connection.readyState === 1 && foundUser._id) {
+      await Member.findByIdAndUpdate(foundUser._id, { $set: { lastLogin: formattedLastLogin } });
+      foundUser.lastLogin = formattedLastLogin;
+    }
+
     res.json({
       message: 'Login successful',
       token,
@@ -185,6 +194,18 @@ app.post('/api/auth/signup', async (req, res) => {
     const numId = Math.floor(1000 + Math.random() * 9000);
     const membershipId = `ETH-2026-${numId}`;
 
+    const options = { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" };
+    const formattedJoined = new Date().toLocaleDateString("en-US", options);
+    const initialVal = fullName.trim().split(" ").map(n => n.charAt(0)).join("").toUpperCase() || "U";
+    const colors = [
+      "bg-pink-100 text-pink-700 dark:bg-pink-950/40 dark:text-pink-400",
+      "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+      "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+      "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+      "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+    ];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
     let newUserDoc = null;
 
     // 3. Save to MongoDB Atlas "members" collection
@@ -193,6 +214,7 @@ app.post('/api/auth/signup', async (req, res) => {
         name: fullName,
         email: userEmail,
         phone: userPhone,
+        address: "-",
         password: hashedPassword,
         membershipId,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop',
@@ -202,7 +224,12 @@ app.post('/api/auth/signup', async (req, res) => {
         currentSeat: 'B-04',
         floor: 'First Floor (Silent Zone)',
         shift: 'Full Day (07:00 AM - 11:00 PM)',
-        joinedDate: new Date().toISOString().split('T')[0]
+        joined: formattedJoined,
+        joinedDate: new Date().toISOString().split('T')[0],
+        by: 'App',
+        status: 'Active',
+        initial: initialVal,
+        color: randomColor
       });
       console.log(`✅ Saved new member "${fullName}" (${membershipId}) directly into MongoDB Atlas "members" collection!`);
     } else {
@@ -211,6 +238,7 @@ app.post('/api/auth/signup', async (req, res) => {
         name: fullName,
         email: userEmail,
         phone: userPhone,
+        address: "-",
         password: hashedPassword,
         membershipId,
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=250&auto=format&fit=crop',
@@ -220,7 +248,12 @@ app.post('/api/auth/signup', async (req, res) => {
         currentSeat: 'B-04',
         floor: 'First Floor (Silent Zone)',
         shift: 'Full Day (07:00 AM - 11:00 PM)',
-        joinedDate: new Date().toISOString().split('T')[0]
+        joined: formattedJoined,
+        joinedDate: new Date().toISOString().split('T')[0],
+        by: 'App',
+        status: 'Active',
+        initial: initialVal,
+        color: randomColor
       };
       inMemoryUsers.push(newUserDoc);
     }
